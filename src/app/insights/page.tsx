@@ -36,10 +36,30 @@ export default function InsightsPage() {
   const fetchInsights = async () => {
     try {
       const response = await fetch('/api/insights/generate');
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
       const data = await response.json() as MessageStats;
       setStats(data);
     } catch (error) {
       console.error('Error fetching insights:', error);
+      // Set mock data for now to prevent crash
+      setStats({
+        total: 0,
+        bySender: [],
+        byDate: [],
+        byMonth: [],
+        sentimentOverview: {
+          positive: 0,
+          negative: 0,
+          neutral: 0,
+          unanalyzed: 0
+        },
+        conflictCount: 0,
+        averageMessagesPerDay: 0,
+        longestStreak: 0,
+        currentStreak: 0
+      });
     } finally {
       setLoading(false);
     }
