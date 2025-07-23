@@ -1,0 +1,936 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Unmask - Sacred Conversations Archive</title>
+    <link href="https://fonts.googleapis.com/css2?family=Crimson+Text:ital,wght@0,400;0,600;1,400&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --void: #0a0a0f;
+            --shadow: #1a1a2e;
+            --charcoal: #16213e;
+            --onyx: #2d2d44;
+            --oxblood: #4a1c40;
+            --indigo: #1e1b4b;
+            --midnight: #0f0f23;
+            
+            --halo: #f8fafc;
+            --electric: #06ffa5;
+            --plasma: #ff006e;
+            --gold: #ffd700;
+            --ethereal: rgba(248, 250, 252, 0.08);
+            
+            --text-sacred: #e2e8f0;
+            --text-whisper: #94a3b8;
+            --text-oracle: #f1f5f9;
+            
+            --serif: 'Crimson Text', serif;
+            --sans: 'Inter', sans-serif;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--serif);
+            background: linear-gradient(135deg, var(--void) 0%, var(--shadow) 30%, var(--midnight) 100%);
+            color: var(--text-sacred);
+            line-height: 1.7;
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle at 30% 70%, rgba(255, 0, 110, 0.03) 0%, transparent 50%),
+                        radial-gradient(circle at 80% 20%, rgba(6, 255, 165, 0.02) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .sacred-header {
+            text-align: center;
+            padding: 3rem 2rem 2rem;
+            position: relative;
+        }
+
+        .sacred-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 1px;
+            height: 100%;
+            background: linear-gradient(to bottom, transparent, var(--electric), transparent);
+            opacity: 0.3;
+        }
+
+        .portal-title {
+            font-size: 3.5rem;
+            font-weight: 400;
+            background: linear-gradient(135deg, var(--halo) 0%, var(--electric) 50%, var(--plasma) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.5rem;
+            letter-spacing: 0.05em;
+            animation: shimmer 6s ease-in-out infinite;
+        }
+
+        @keyframes shimmer {
+            0%, 100% { opacity: 0.8; }
+            50% { opacity: 1; }
+        }
+
+        .portal-essence {
+            font-size: 1.1rem;
+            color: var(--text-whisper);
+            font-style: italic;
+            max-width: 600px;
+            margin: 0 auto 1rem;
+        }
+
+        .breadcrumb {
+            color: var(--text-whisper);
+            font-size: 0.9rem;
+            font-family: var(--sans);
+        }
+
+        .breadcrumb a {
+            color: var(--electric);
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        .breadcrumb a:hover {
+            color: var(--plasma);
+        }
+
+        .archive-chamber {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 0 2rem 4rem;
+        }
+
+        .chamber-controls {
+            background: linear-gradient(135deg, var(--onyx) 0%, var(--charcoal) 100%);
+            border-radius: 20px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            border: 1px solid var(--ethereal);
+            backdrop-filter: blur(20px);
+        }
+
+        .controls-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr 1fr;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .sacred-search {
+            background: var(--ethereal);
+            border: 1px solid rgba(248, 250, 252, 0.1);
+            border-radius: 16px;
+            padding: 1rem 1.5rem;
+            color: var(--text-sacred);
+            font-family: var(--serif);
+            font-size: 1rem;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+
+        .sacred-search:focus {
+            outline: none;
+            border-color: var(--electric);
+            box-shadow: 0 0 20px rgba(6, 255, 165, 0.15);
+        }
+
+        .sacred-search::placeholder {
+            color: var(--text-whisper);
+            font-style: italic;
+        }
+
+        .filter-crystal {
+            background: var(--ethereal);
+            border: 1px solid rgba(248, 250, 252, 0.1);
+            border-radius: 16px;
+            padding: 1rem 1.5rem;
+            color: var(--text-sacred);
+            cursor: pointer;
+            font-family: var(--sans);
+            font-size: 0.9rem;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+
+        .filter-crystal:hover,
+        .filter-crystal:focus {
+            border-color: var(--electric);
+            outline: none;
+        }
+
+        .stats-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 2rem;
+        }
+
+        .archive-stats {
+            display: flex;
+            gap: 2rem;
+        }
+
+        .stat-crystal {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 1.8rem;
+            font-weight: 300;
+            color: var(--electric);
+            display: block;
+            font-family: var(--sans);
+        }
+
+        .stat-label {
+            font-size: 0.8rem;
+            color: var(--text-whisper);
+            font-family: var(--sans);
+        }
+
+        .pagination-controls {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+
+        .page-btn {
+            background: var(--ethereal);
+            border: 1px solid rgba(248, 250, 252, 0.1);
+            color: var(--text-sacred);
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: var(--sans);
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+        }
+
+        .page-btn:hover {
+            border-color: var(--electric);
+            background: rgba(6, 255, 165, 0.1);
+        }
+
+        .page-btn.active {
+            background: var(--electric);
+            color: var(--void);
+            border-color: var(--electric);
+        }
+
+        .page-info {
+            color: var(--text-whisper);
+            font-size: 0.9rem;
+            font-family: var(--sans);
+        }
+
+        .memory-vault {
+            background: linear-gradient(135deg, var(--charcoal) 0%, var(--onyx) 100%);
+            border-radius: 20px;
+            overflow: hidden;
+            border: 1px solid var(--ethereal);
+            backdrop-filter: blur(20px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .conversation-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.95rem;
+        }
+
+        .conversation-table thead {
+            background: linear-gradient(135deg, var(--oxblood) 0%, var(--indigo) 100%);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .conversation-table th {
+            color: var(--text-oracle);
+            padding: 1.5rem 1rem;
+            text-align: left;
+            font-weight: 500;
+            font-family: var(--sans);
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            border-bottom: 1px solid rgba(6, 255, 165, 0.2);
+        }
+
+        .conversation-table tbody {
+            background: var(--ethereal);
+        }
+
+        .conversation-table td {
+            padding: 1.25rem 1rem;
+            border-bottom: 1px solid rgba(248, 250, 252, 0.05);
+            color: var(--text-sacred);
+            vertical-align: top;
+        }
+
+        .conversation-table tr {
+            transition: all 0.3s ease;
+        }
+
+        .conversation-table tbody tr:hover {
+            background: rgba(6, 255, 165, 0.03);
+            transform: scale(1.001);
+        }
+
+        .temporal-signature {
+            font-family: var(--sans);
+            font-size: 0.85rem;
+            color: var(--text-whisper);
+            white-space: nowrap;
+        }
+
+        .date-primary {
+            color: var(--text-sacred);
+            font-weight: 500;
+        }
+
+        .time-secondary {
+            color: var(--text-whisper);
+            margin-top: 0.25rem;
+        }
+
+        .soul-entity {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.5rem 1rem;
+            border-radius: 16px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            font-family: var(--sans);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .entity-you {
+            background: linear-gradient(135deg, var(--electric), #00ff88);
+            color: var(--void);
+            box-shadow: 0 0 15px rgba(6, 255, 165, 0.2);
+        }
+
+        .entity-brandon {
+            background: linear-gradient(135deg, var(--plasma), #ff1744);
+            color: var(--halo);
+            box-shadow: 0 0 15px rgba(255, 0, 110, 0.2);
+        }
+
+        .message-essence {
+            max-width: 400px;
+            line-height: 1.6;
+            color: var(--text-sacred);
+        }
+
+        .message-preview {
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .message-full {
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .message-full:hover {
+            color: var(--electric);
+        }
+
+        .emotional-aura {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            font-family: var(--sans);
+            text-transform: capitalize;
+        }
+
+        .aura-positive { 
+            background: linear-gradient(135deg, var(--electric), #00ff88);
+            color: var(--void);
+            box-shadow: 0 0 10px rgba(6, 255, 165, 0.3);
+        }
+        
+        .aura-negative { 
+            background: linear-gradient(135deg, var(--plasma), #ff1744);
+            color: var(--halo);
+            box-shadow: 0 0 10px rgba(255, 0, 110, 0.3);
+        }
+        
+        .aura-neutral { 
+            background: linear-gradient(135deg, var(--gold), #ffb300);
+            color: var(--void);
+            box-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+        }
+
+        .aura-mixed {
+            background: linear-gradient(135deg, var(--gold), var(--electric));
+            color: var(--void);
+            box-shadow: 0 0 10px rgba(255, 215, 0, 0.2);
+        }
+
+        .context-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .context-tag {
+            background: rgba(6, 255, 165, 0.1);
+            border: 1px solid rgba(6, 255, 165, 0.2);
+            color: var(--electric);
+            padding: 0.25rem 0.75rem;
+            border-radius: 12px;
+            font-size: 0.7rem;
+            font-family: var(--sans);
+            font-weight: 500;
+            text-transform: capitalize;
+        }
+
+        .attachment-indicator {
+            color: var(--gold);
+            font-size: 0.8rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .loading-mystical {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 4rem;
+            color: var(--text-whisper);
+            font-style: italic;
+            font-size: 1.1rem;
+        }
+
+        .loading-mystical::before {
+            content: '';
+            width: 24px;
+            height: 24px;
+            border: 2px solid transparent;
+            border-top: 2px solid var(--electric);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 1rem;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .no-messages {
+            text-align: center;
+            padding: 4rem;
+            color: var(--text-whisper);
+            font-style: italic;
+            font-size: 1.1rem;
+        }
+
+        .vault-height {
+            max-height: 70vh;
+            overflow-y: auto;
+            scrollbar-width: thin;
+            scrollbar-color: var(--electric) transparent;
+        }
+
+        .vault-height::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .vault-height::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 4px;
+        }
+
+        .vault-height::-webkit-scrollbar-thumb {
+            background: var(--electric);
+            border-radius: 4px;
+        }
+
+        .vault-height::-webkit-scrollbar-thumb:hover {
+            background: var(--plasma);
+        }
+
+        @media (max-width: 1200px) {
+            .controls-grid {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+
+            .stats-row {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .archive-stats {
+                justify-content: center;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .archive-chamber {
+                padding: 0 1rem 2rem;
+            }
+
+            .portal-title {
+                font-size: 2.5rem;
+            }
+
+            .chamber-controls {
+                padding: 1.5rem;
+            }
+
+            .conversation-table th,
+            .conversation-table td {
+                padding: 1rem 0.5rem;
+            }
+
+            .message-essence {
+                max-width: 250px;
+            }
+
+            .pagination-controls {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Sacred Header -->
+    <div class="sacred-header">
+        <h1 class="portal-title">Sacred Conversations</h1>
+        <p class="portal-essence">
+            Every word, every silence, every shift in frequency preserved in the Akashic Records
+        </p>
+        <div class="breadcrumb">
+            <a href="#" onclick="history.back()">← Return to Portal</a>
+        </div>
+    </div>
+
+    <div class="archive-chamber">
+        <!-- Chamber Controls -->
+        <div class="chamber-controls">
+            <div class="controls-grid">
+                <input type="text" class="sacred-search" id="messageSearch" placeholder="Search the depths of your connection..." onkeyup="searchConversations()">
+                
+                <select class="filter-crystal" id="entityFilter" onchange="searchConversations()">
+                    <option value="">All Entities</option>
+                    <option value="You">Your Voice</option>
+                    <option value="Brandon">Brandon's Voice</option>
+                </select>
+                
+                <select class="filter-crystal" id="emotionFilter" onchange="searchConversations()">
+                    <option value="">All Emotions</option>
+                    <option value="positive">Light</option>
+                    <option value="negative">Shadow</option>
+                    <option value="neutral">Neutral</option>
+                    <option value="mixed">Mixed</option>
+                </select>
+                
+                <select class="filter-crystal" id="contextFilter" onchange="searchConversations()">
+                    <option value="">All Contexts</option>
+                    <option value="general_conversation">Sacred Exchange</option>
+                    <option value="conflict">Shadow Work</option>
+                    <option value="affection">Heart Opening</option>
+                    <option value="planning">Co-creation</option>
+                    <option value="support">Soul Support</option>
+                </select>
+                
+                <select class="filter-crystal" id="dateRangeFilter" onchange="searchConversations()">
+                    <option value="">All Time</option>
+                    <option value="today">Today's Essence</option>
+                    <option value="week">Recent Memory</option>
+                    <option value="month">Last Moon Cycle</option>
+                    <option value="year">This Year's Journey</option>
+                </select>
+            </div>
+
+            <div class="stats-row">
+                <div class="archive-stats">
+                    <div class="stat-crystal">
+                        <span class="stat-value" id="totalMessages">27,689</span>
+                        <span class="stat-label">Sacred Exchanges</span>
+                    </div>
+                    <div class="stat-crystal">
+                        <span class="stat-value" id="filteredCount">50</span>
+                        <span class="stat-label">Current Viewing</span>
+                    </div>
+                    <div class="stat-crystal">
+                        <span class="stat-value" id="dateRange">2.5 Years</span>
+                        <span class="stat-label">Journey Span</span>
+                    </div>
+                </div>
+
+                <div class="pagination-controls">
+                    <button class="page-btn" onclick="changePage('prev')" id="prevBtn">← Previous</button>
+                    <span class="page-info" id="pageInfo">Page 1 of 554</span>
+                    <button class="page-btn" onclick="changePage('next')" id="nextBtn">Next →</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Memory Vault -->
+        <div class="memory-vault">
+            <div class="vault-height">
+                <table class="conversation-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 140px;">Temporal Signature</th>
+                            <th style="width: 120px;">Soul Entity</th>
+                            <th style="width: 400px;">Message Essence</th>
+                            <th style="width: 120px;">Emotional Aura</th>
+                            <th style="width: 150px;">Context</th>
+                            <th style="width: 80px;">Attachments</th>
+                        </tr>
+                    </thead>
+                    <tbody id="conversationVault">
+                        <!-- Messages will materialize here -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Sacred Variables
+        let currentConversations = [];
+        let currentPage = 1;
+        let messagesPerPage = 50;
+        let isLoading = false;
+        let totalPages = 1;
+        let totalMessages = 0;
+        let currentFilters = {};
+
+        // API Base URL - Update this to your deployed worker URL
+        const API_BASE = 'https://your-worker.your-subdomain.workers.dev';
+
+        // Initialize the Archive
+        document.addEventListener('DOMContentLoaded', function() {
+            channelConversationData();
+            loadStats();
+        });
+
+        // Channel Conversation Data from Real API
+        async function channelConversationData() {
+            if (isLoading) return;
+            isLoading = true;
+            showLoading();
+            
+            try {
+                const params = new URLSearchParams({
+                    page: currentPage,
+                    limit: messagesPerPage,
+                    ...currentFilters
+                });
+
+                const response = await fetch(`${API_BASE}/api/conversations?${params}`);
+                
+                if (!response.ok) {
+                    throw new Error(`API request failed: ${response.status}`);
+                }
+
+                const data = await response.json();
+                
+                currentConversations = data.conversations || [];
+                totalPages = data.pagination?.totalPages || 1;
+                totalMessages = data.pagination?.totalCount || 0;
+                
+                updateStats();
+                renderConversations();
+                
+            } catch (error) {
+                console.error('Error channeling conversation data:', error);
+                showError();
+            } finally {
+                isLoading = false;
+            }
+        }
+
+        // Load Statistics from API
+        async function loadStats() {
+            try {
+                const response = await fetch(`${API_BASE}/api/conversations/stats`);
+                
+                if (response.ok) {
+                    const stats = await response.json();
+                    document.getElementById('totalMessages').textContent = stats.totalMessages.toLocaleString();
+                    document.getElementById('dateRange').textContent = stats.journeySpan;
+                }
+            } catch (error) {
+                console.error('Error loading stats:', error);
+                // Fallback to default values already in HTML
+            }
+        }
+
+        // Generate Sample Conversations
+        function generateSampleConversations() {
+            const entities = ['You', 'Brandon'];
+            const emotions = ['positive', 'negative', 'neutral', 'mixed'];
+            const contexts = ['general_conversation', 'conflict', 'affection', 'planning', 'support'];
+            const messages = [
+                "Good morning soul, how did your dreams treat you?",
+                "I feel your presence even when you're not here ❤️",
+                "Can we create space to talk about what's stirring in us?",
+                "Your thoughtfulness just shifted something in my heart",
+                "I'm feeling the weight of work crushing my spirit today",
+                "What does your soul want for dinner tonight?",
+                "I love how we dance together in consciousness",
+                "I need solitude to remember who I am beneath this stress",
+                "Thank you for witnessing my shadows with such tenderness",
+                "Let's weave magic into this weekend and remember our essence",
+                "That meeting was intense but I felt your energy with me",
+                "I'm sorry I was distant yesterday, work was overwhelming",
+                "Your laugh just lit up my entire nervous system",
+                "Can we talk about what happened earlier? I want to understand",
+                "I saw that sunset and immediately thought of you",
+                "This song reminded me of our first dance ❤️",
+                "I'm struggling with anxiety today, could use your grounding presence",
+                "Your vulnerability in that moment took my breath away",
+                "I love watching you create beautiful things",
+                "Thank you for holding space for my chaos today",
+                "What are you feeling called to explore this weekend?",
+                "I miss the way you touch my arm when we're talking",
+                "Your perspective just shifted everything for me",
+                "I feel so grateful for the life we're building together",
+                "Can we have a heart-to-heart about our future dreams?"
+            ];
+
+            allConversations = [];
+            
+            // Generate 2000+ sample messages for realistic pagination
+            for (let i = 0; i < 2150; i++) {
+                const date = new Date(2022, Math.floor(Math.random() * 36), Math.floor(Math.random() * 28) + 1);
+                const hour = Math.floor(Math.random() * 24);
+                const minute = Math.floor(Math.random() * 60);
+                date.setHours(hour, minute);
+                
+                const hasAttachment = Math.random() < 0.15; // 15% chance of attachment
+                
+                allConversations.push({
+                    id: i + 1,
+                    date: date.toISOString().split('T')[0],
+                    time: date.toTimeString().split(' ')[0].slice(0, 5),
+                    datetime: date.toISOString(),
+                    entity: entities[Math.floor(Math.random() * entities.length)],
+                    message: messages[Math.floor(Math.random() * messages.length)],
+                    emotion: emotions[Math.floor(Math.random() * emotions.length)],
+                    context: contexts[Math.floor(Math.random() * contexts.length)],
+                    attachment: hasAttachment ? (Math.random() < 0.7 ? 'image' : 'other') : null,
+                    emotional_score: Math.floor(Math.random() * 10) + 1
+                });
+            }
+
+            // Sort by date descending (newest first)
+            allConversations.sort((a, b) => new Date(b.datetime) - new Date(a.datetime));
+        }
+
+        // Show Loading State
+        function showLoading() {
+            document.getElementById('conversationVault').innerHTML = `
+                <tr>
+                    <td colspan="6">
+                        <div class="loading-mystical">
+                            Channeling sacred conversations from the akashic records...
+                        </div>
+                    </td>
+                </tr>
+            `;
+        }
+
+        // Show Error State
+        function showError() {
+            document.getElementById('conversationVault').innerHTML = `
+                <tr>
+                    <td colspan="6">
+                        <div class="no-messages">
+                            The veil is too thick. Unable to channel conversations at this time.
+                        </div>
+                    </td>
+                </tr>
+            `;
+        }
+
+        // Update Statistics
+        function updateStats() {
+            document.getElementById('filteredCount').textContent = currentConversations.length;
+            document.getElementById('pageInfo').textContent = `Page ${currentPage} of ${totalPages}`;
+        }
+
+        // Render Conversations
+        function renderConversations() {
+            const vault = document.getElementById('conversationVault');
+
+            if (currentConversations.length === 0) {
+                vault.innerHTML = `
+                    <tr>
+                        <td colspan="6">
+                            <div class="no-messages">
+                                No conversations match your sacred query. Try adjusting the filters.
+                            </div>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            vault.innerHTML = '';
+            
+            currentConversations.forEach(conversation => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>
+                        <div class="temporal-signature">
+                            <div class="date-primary">${formatMysticalDate(conversation.date)}</div>
+                            <div class="time-secondary">${conversation.time}</div>
+                        </div>
+                    </td>
+                    <td>
+                        <span class="soul-entity entity-${conversation.entity.toLowerCase()}">${conversation.entity}</span>
+                    </td>
+                    <td>
+                        <div class="message-essence">
+                            <div class="message-preview">${conversation.message}</div>
+                        </div>
+                    </td>
+                    <td>
+                        <span class="emotional-aura aura-${conversation.emotion}">${conversation.emotion}</span>
+                    </td>
+                    <td>
+                        <div class="context-tags">
+                            <span class="context-tag">${conversation.context.replace(/_/g, ' ')}</span>
+                        </div>
+                    </td>
+                    <td>
+                        ${conversation.attachment ? `<div class="attachment-indicator">📎 ${conversation.attachment}</div>` : ''}
+                    </td>
+                `;
+                vault.appendChild(row);
+            });
+
+            updatePaginationButtons();
+        }
+
+        // Format Mystical Date
+        function formatMysticalDate(dateString) {
+            const date = new Date(dateString);
+            const months = ['Awakening', 'Blooming', 'Growing', 'Flowering', 'Radiance', 'Peak', 'Harvest', 'Transformation', 'Release', 'Reflection', 'Depth', 'Rebirth'];
+            return `${months[date.getMonth()]} ${date.getDate()}, ${date.getFullYear()}`;
+        }
+
+        // Search Conversations
+        function searchConversations() {
+            const searchTerm = document.getElementById('messageSearch').value.trim();
+            const entityFilter = document.getElementById('entityFilter').value;
+            const emotionFilter = document.getElementById('emotionFilter').value;
+            const contextFilter = document.getElementById('contextFilter').value;
+            const dateRangeFilter = document.getElementById('dateRangeFilter').value;
+
+            // Update current filters
+            currentFilters = {};
+            if (searchTerm) currentFilters.search = searchTerm;
+            if (entityFilter) currentFilters.entity = entityFilter;
+            if (emotionFilter) currentFilters.emotion = emotionFilter;
+            if (contextFilter) currentFilters.context = contextFilter;
+            if (dateRangeFilter) currentFilters.dateRange = dateRangeFilter;
+
+            // Reset to first page when filtering
+            currentPage = 1;
+            
+            // Debounce the API calls
+            clearTimeout(searchConversations.timeout);
+            searchConversations.timeout = setTimeout(() => {
+                channelConversationData();
+            }, 300);
+        }
+
+        // Change Page
+        function changePage(direction) {
+            if (direction === 'prev' && currentPage > 1) {
+                currentPage--;
+            } else if (direction === 'next' && currentPage < totalPages) {
+                currentPage++;
+            } else {
+                return; // No change needed
+            }
+
+            channelConversationData();
+            
+            // Scroll to top of table
+            document.querySelector('.memory-vault').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // Update Pagination Buttons
+        function updatePaginationButtons() {
+            const prevBtn = document.getElementById('prevBtn');
+            const nextBtn = document.getElementById('nextBtn');
+
+            prevBtn.disabled = currentPage === 1;
+            nextBtn.disabled = currentPage === totalPages || totalPages === 0;
+
+            if (prevBtn.disabled) {
+                prevBtn.style.opacity = '0.5';
+                prevBtn.style.cursor = 'not-allowed';
+            } else {
+                prevBtn.style.opacity = '1';
+                prevBtn.style.cursor = 'pointer';
+            }
+
+            if (nextBtn.disabled) {
+                nextBtn.style.opacity = '0.5';
+                nextBtn.style.cursor = 'not-allowed';
+            } else {
+                nextBtn.style.opacity = '1';
+                nextBtn.style.cursor = 'pointer';
+            }
+        }
+
+        // Keyboard Navigation
+        document.addEventListener('keydown', function(event) {
+            if (event.ctrlKey || event.metaKey) {
+                switch(event.key) {
+                    case 'ArrowLeft':
+                        event.preventDefault();
+                        changePage('prev');
+                        break;
+                    case 'ArrowRight':
+                        event.preventDefault();
+                        changePage('next');
+                        break;
+                }
+            }
+        });
+    </script>
+</body>
+</html>

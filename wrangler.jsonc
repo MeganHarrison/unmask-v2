@@ -21,5 +21,8 @@
       "database_name": "megan-personal",
       "database_id": "f450193b-9536-4ada-8271-2a8cd917069e"
     }
-  ]
+  ],
+  "vars": {
+    "OPENAI_API_KEY": ""
+  }
 }
