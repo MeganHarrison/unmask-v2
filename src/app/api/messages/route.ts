@@ -1,42 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-
-// Mock data for local development
-const generateMockMessages = (page: number, limit: number, sender?: string, search?: string) => {
-  const messages = [];
-  const start = (page - 1) * limit;
-  
-  for (let i = 0; i < limit; i++) {
-    const index = start + i;
-    const senderName = index % 2 === 0 ? 'Brandon' : 'You';
-    
-    // Filter by sender if specified
-    if (sender && senderName !== sender) continue;
-    
-    const message = {
-      id: index + 1,
-      date: '2025-01-01',
-      time: `${(index % 24).toString().padStart(2, '0')}:00:00`,
-      date_time: `2025-01-01 ${(index % 24).toString().padStart(2, '0')}:00:00`,
-      type: senderName === 'Brandon' ? 'Incoming' : 'Outgoing',
-      sender: senderName,
-      message: `Test message ${index + 1} - This is a sample message for testing`,
-      attachment: null,
-      sentiment: null,
-      sentiment_score: Math.random() * 2 - 1, // Random sentiment between -1 and 1
-      conflict_detected: Math.random() > 0.9, // 10% chance of conflict
-      emotional_score: Math.random(),
-      tags_json: null,
-      relationship_id: 1
-    };
-    
-    // Filter by search if specified
-    if (search && !message.message.toLowerCase().includes(search.toLowerCase())) continue;
-    
-    messages.push(message);
-  }
-  
-  return messages;
-};
+import { getRequestContext } from '@cloudflare/next-on-pages';
 
 export async function GET(request: NextRequest) {
   try {
@@ -46,9 +9,36 @@ export async function GET(request: NextRequest) {
     const search = searchParams.get('search') || '';
     const sender = searchParams.get('sender') || '';
     
-    // Generate mock messages
-    const allMessages = generateMockMessages(page, limit, sender, search);
-    const total = 27689; // Mock total count
+    // Get the Cloudflare context and D1 database
+    const { env } = getRequestContext();
+    const db = env.DB;
+    
+    // Build the query
+    let query = 'SELECT * FROM "texts-bc" WHERE 1=1';
+    const params: any[] = [];
+    
+    if (sender && sender !== 'all') {
+      query += ' AND sender = ?';
+      params.push(sender);
+    }
+    
+    if (search) {
+      query += ' AND message LIKE ?';
+      params.push(`%${search}%`);
+    }
+    
+    // Get total count
+    const countQuery = query.replace('SELECT *', 'SELECT COUNT(*) as count');
+    const countResult = await db.prepare(countQuery).bind(...params).first();
+    const total = Number(countResult?.count || 0);
+    
+    // Add pagination
+    query += ' ORDER BY date_time DESC LIMIT ? OFFSET ?';
+    params.push(limit, (page - 1) * limit);
+    
+    // Execute query
+    const result = await db.prepare(query).bind(...params).all();
+    const messages = result.results || [];
     
     // Calculate pagination metadata
     const totalPages = Math.ceil(total / limit);
@@ -56,7 +46,7 @@ export async function GET(request: NextRequest) {
     const hasPrevPage = page > 1;
 
     return NextResponse.json({
-      messages: allMessages,
+      messages,
       pagination: {
         page,
         limit,
@@ -69,6 +59,23 @@ export async function GET(request: NextRequest) {
 
   } catch (error) {
     console.error('Error fetching messages:', error);
+    
+    // Fallback for local development
+    if (error instanceof Error && error.message.includes('getRequestContext')) {
+      return NextResponse.json({
+        messages: [],
+        pagination: {
+          page: 1,
+          limit: 100,
+          total: 0,
+          totalPages: 0,
+          hasNextPage: false,
+          hasPrevPage: false
+        },
+        error: 'Database not available in local development'
+      });
+    }
+    
     return NextResponse.json(
       { error: 'Failed to fetch messages' },
       { status: 500 }

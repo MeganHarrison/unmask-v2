@@ -1,0 +1,280 @@
+
+> deploy
+> opennextjs-cloudflare build && opennextjs-cloudflare deploy
+
+
+┌─────────────────────────────┐
+│ OpenNext — Cloudflare build │
+└─────────────────────────────┘
+
+App directory: /Users/meganharrison/Documents/github/next-starter-template
+Next.js version : 15.3.3
+@opennextjs/cloudflare version: 1.3.0
+@opennextjs/aws version: 3.6.5
+
+┌─────────────────────────────────┐
+│ OpenNext — Building Next.js app │
+└─────────────────────────────────┘
+
+
+> build
+> next build
+
+   ▲ Next.js 15.3.3
+   - Environments: .env.local
+
+   Creating an optimized production build ...
+ ✓ Compiled successfully in 1000ms
+   Linting and checking validity of types ...
+
+./src/app/messages/page.tsx
+76:6  Warning: React Hook useEffect has a missing dependency: 'fetchMessages'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+info  - Need to disable some ESLint rules? Learn more here: https://nextjs.org/docs/app/api-reference/config/eslint#disabling-rules
+   Collecting page data ...
+   Generating static pages (0/9) ...
+   Generating static pages (2/9) 
+   Generating static pages (4/9) 
+   Generating static pages (6/9) 
+ ✓ Generating static pages (9/9)
+   Finalizing page optimization ...
+   Collecting build traces ...
+
+Route (app)                                 Size  First Load JS
+┌ ○ /                                      172 B         105 kB
+├ ○ /_not-found                            977 B         102 kB
+├ ƒ /api/ai/analyze-messages               141 B         101 kB
+├ ƒ /api/insights/generate                 141 B         101 kB
+├ ƒ /api/messages                          141 B         101 kB
+├ ○ /insights                             113 kB         228 kB
+└ ○ /messages                            3.78 kB         119 kB
++ First Load JS shared by all             101 kB
+  ├ chunks/4bd1b696-e50ac232f852c133.js  53.2 kB
+  ├ chunks/684-7eac7068de6924e5.js       45.9 kB
+  └ other shared chunks (total)          1.92 kB
+
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+
+
+┌──────────────────────────────┐
+│ OpenNext — Generating bundle │
+└──────────────────────────────┘
+
+Bundling middleware function...
+Bundling static assets...
+Bundling cache assets...
+Building server function: default...
+Applying code patches: 1.676s
+# copyPackageTemplateFiles
+[35m⚙️ Bundling the OpenNext server...
+[0m
+▲ [WARNING] This case clause will never be evaluated because it duplicates an earlier case clause [duplicate-case]
+
+    .open-next/server-functions/default/.next/server/app/insights/page.js:1:53294:
+      1 │ ...ll:switch(e=e.type){case null:case null:case null:case null:case...
+        ╵                                  ~~~~
+
+  The earlier case clause is here:
+
+    .open-next/server-functions/default/.next/server/app/insights/page.js:1:53284:
+      1 │ ...t){case null:switch(e=e.type){case null:case null:case null:case...
+        ╵                                  ~~~~
+
+▲ [WARNING] This case clause will never be evaluated because it duplicates an earlier case clause [duplicate-case]
+
+    .open-next/server-functions/default/.next/server/app/insights/page.js:1:53304:
+      1 │ ...e=e.type){case null:case null:case null:case null:case null:retu...
+        ╵                                  ~~~~
+
+  The earlier case clause is here:
+
+    .open-next/server-functions/default/.next/server/app/insights/page.js:1:53284:
+      1 │ ...t){case null:switch(e=e.type){case null:case null:case null:case...
+        ╵                                  ~~~~
+
+▲ [WARNING] This case clause will never be evaluated because it duplicates an earlier case clause [duplicate-case]
+
+    .open-next/server-functions/default/.next/server/app/insights/page.js:1:53314:
+      1 │ ...case null:case null:case null:case null:case null:return e;defau...
+        ╵                                  ~~~~
+
+  The earlier case clause is here:
+
+    .open-next/server-functions/default/.next/server/app/insights/page.js:1:53284:
+      1 │ ...t){case null:switch(e=e.type){case null:case null:case null:case...
+        ╵                                  ~~~~
+
+▲ [WARNING] This case clause will never be evaluated because it duplicates an earlier case clause [duplicate-case]
+
+    .open-next/server-functions/default/.next/server/app/insights/page.js:1:53324:
+      1 │ ...case null:case null:case null:case null:return e;default:switch(...
+        ╵                                  ~~~~
+
+  The earlier case clause is here:
+
+    .open-next/server-functions/default/.next/server/app/insights/page.js:1:53284:
+      1 │ ...t){case null:switch(e=e.type){case null:case null:case null:case...
+        ╵                                  ~~~~
+
+▲ [WARNING] This case clause will never be evaluated because it duplicates an earlier case clause [duplicate-case]
+
+    .open-next/server-functions/default/.next/server/app/insights/page.js:1:53393:
+      1 │ ...e.$$typeof){case null:case tU:case null:case tB:case null:return...
+        ╵                                  ~~~~
+
+  The earlier case clause is here:
+
+    .open-next/server-functions/default/.next/server/app/insights/page.js:1:53375:
+      1 │ ...fault:switch(e=e&&e.$$typeof){case null:case tU:case null:case t...
+        ╵                                  ~~~~
+
+▲ [WARNING] This case clause will never be evaluated because it duplicates an earlier case clause [duplicate-case]
+
+    .open-next/server-functions/default/.next/server/app/insights/page.js:1:53411:
+      1 │ ...ull:case tU:case null:case tB:case null:return e;default:return ...
+        ╵                                  ~~~~
+
+  The earlier case clause is here:
+
+    .open-next/server-functions/default/.next/server/app/insights/page.js:1:53375:
+      1 │ ...fault:switch(e=e&&e.$$typeof){case null:case tU:case null:case t...
+        ╵                                  ~~~~
+
+▲ [WARNING] This case clause will never be evaluated because it duplicates an earlier case clause [duplicate-case]
+
+    .open-next/server-functions/default/.next/server/app/insights/page.js:1:53448:
+      1 │ ...ll:return e;default:return t}}case null:return t}}}(e)===tB?tX:t...
+        ╵                                  ~~~~
+
+  The earlier case clause is here:
+
+    .open-next/server-functions/default/.next/server/app/insights/page.js:1:53257:
+      1 │ ...){let{$$typeof:t}=e;switch(t){case null:switch(e=e.type){case nu...
+        ╵                                  ~~~~
+
+[35mWorker saved in `.open-next/worker.js` 🚀
+[0m
+OpenNext build complete.
+
+┌──────────────────────────────┐
+│ OpenNext — Cloudflare deploy │
+└──────────────────────────────┘
+
+Incremental cache does not need populating
+Tag cache does not need populating
+
+ ⛅️ wrangler 4.21.2 (update available 4.25.1)
+─────────────────────────────────────────────
+[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mThis case clause will never be evaluated because it duplicates an earlier case clause[0m [duplicate-case]
+
+    .open-next/server-functions/default/handler.mjs:364:25138:
+[37m      364 │ ...itch(e11=e11.type){case null:[32mcase[37m null:case null:case null:cas...
+          ╵                                 [32m~~~~[0m
+
+  The earlier case clause is here:
+
+    .open-next/server-functions/default/handler.mjs:364:25128:
+[37m      364 │ ...se null:switch(e11=e11.type){[32mcase[37m null:case null:case null:cas...
+          ╵                                 [32m~~~~[0m
+
+
+[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mThis case clause will never be evaluated because it duplicates an earlier case clause[0m [duplicate-case]
+
+    .open-next/server-functions/default/handler.mjs:364:25148:
+[37m      364 │ ...11.type){case null:case null:[32mcase[37m null:case null:case null:ret...
+          ╵                                 [32m~~~~[0m
+
+  The earlier case clause is here:
+
+    .open-next/server-functions/default/handler.mjs:364:25128:
+[37m      364 │ ...se null:switch(e11=e11.type){[32mcase[37m null:case null:case null:cas...
+          ╵                                 [32m~~~~[0m
+
+
+[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mThis case clause will never be evaluated because it duplicates an earlier case clause[0m [duplicate-case]
+
+    .open-next/server-functions/default/handler.mjs:364:25158:
+[37m      364 │ ...ase null:case null:case null:[32mcase[37m null:case null:return e11;de...
+          ╵                                 [32m~~~~[0m
+
+  The earlier case clause is here:
+
+    .open-next/server-functions/default/handler.mjs:364:25128:
+[37m      364 │ ...se null:switch(e11=e11.type){[32mcase[37m null:case null:case null:cas...
+          ╵                                 [32m~~~~[0m
+
+
+[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mThis case clause will never be evaluated because it duplicates an earlier case clause[0m [duplicate-case]
+
+    .open-next/server-functions/default/handler.mjs:364:25168:
+[37m      364 │ ...ase null:case null:case null:[32mcase[37m null:return e11;default:swit...
+          ╵                                 [32m~~~~[0m
+
+  The earlier case clause is here:
+
+    .open-next/server-functions/default/handler.mjs:364:25128:
+[37m      364 │ ...se null:switch(e11=e11.type){[32mcase[37m null:case null:case null:cas...
+          ╵                                 [32m~~~~[0m
+
+
+[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mThis case clause will never be evaluated because it duplicates an earlier case clause[0m [duplicate-case]
+
+    .open-next/server-functions/default/handler.mjs:364:25245:
+[37m      364 │ ....$$typeof){case null:case tU:[32mcase[37m null:case tB:case null:retur...
+          ╵                                 [32m~~~~[0m
+
+  The earlier case clause is here:
+
+    .open-next/server-functions/default/handler.mjs:364:25227:
+[37m      364 │ ...witch(e11=e11&&e11.$$typeof){[32mcase[37m null:case tU:case null:case ...
+          ╵                                 [32m~~~~[0m
+
+
+[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mThis case clause will never be evaluated because it duplicates an earlier case clause[0m [duplicate-case]
+
+    .open-next/server-functions/default/handler.mjs:364:25263:
+[37m      364 │ ...ll:case tU:case null:case tB:[32mcase[37m null:return e11;default:retu...
+          ╵                                 [32m~~~~[0m
+
+  The earlier case clause is here:
+
+    .open-next/server-functions/default/handler.mjs:364:25227:
+[37m      364 │ ...witch(e11=e11&&e11.$$typeof){[32mcase[37m null:case tU:case null:case ...
+          ╵                                 [32m~~~~[0m
+
+
+[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mThis case clause will never be evaluated because it duplicates an earlier case clause[0m [duplicate-case]
+
+    .open-next/server-functions/default/handler.mjs:364:25304:
+[37m      364 │ ...turn e11;default:return t10}}[32mcase[37m null:return t10}}}(e10)===tB...
+          ╵                                 [32m~~~~[0m
+
+  The earlier case clause is here:
+
+    .open-next/server-functions/default/handler.mjs:364:25097:
+[37m      364 │ ...$typeof:t10}=e11;switch(t10){[32mcase[37m null:switch(e11=e11.type){ca...
+          ╵                                 [32m~~~~[0m
+
+
+🌀 Building list of assets...
+✨ Read 53 files from the assets directory /Users/meganharrison/Documents/github/next-starter-template/.open-next/assets
+🌀 Starting asset upload...
+🌀 Found 1 new or modified static asset to upload. Proceeding with upload...
++ /BUILD_ID
+Uploaded 1 of 1 assets
+✨ Success! Uploaded 1 file (34 already uploaded) (1.09 sec)
+
+Total Upload: 4839.18 KiB / gzip: 971.88 KiB
+Worker Startup Time: 23 ms
+Your Worker has access to the following bindings:
+Binding                                  Resource                  
+env.DB (megan-personal)                  D1 Database               
+env.ASSETS                               Assets                    
+env.OPENAI_API_KEY ("")                  Environment Variable      
+
+Uploaded next-starter-template (24.66 sec)
+Deployed next-starter-template triggers (0.23 sec)
+  https://next-starter-template.megan-d14.workers.dev
+Current Version ID: 9b618364-4413-4d24-b19c-965d71f958e6
