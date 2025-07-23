@@ -1,11 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getRequestContext } from '@cloudflare/next-on-pages';
+import { getCloudflareContext } from '@opennextjs/cloudflare';
 import OpenAI from 'openai';
+
+export const runtime = 'edge';
 
 // POST endpoint to analyze messages
 export async function POST(request: NextRequest) {
   try {
-    const { env } = getRequestContext();
+    const { env } = getCloudflareContext();
     const db = env.DB;
     
     if (!env.OPENAI_API_KEY) {
@@ -83,7 +85,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Error in message analysis:', error);
     
-    if (error instanceof Error && error.message.includes('getRequestContext')) {
+    if (error instanceof Error && error.message.includes('getCloudflareContext')) {
       return NextResponse.json({
         message: 'Database not available in local development',
         analyzed: 0,
@@ -101,7 +103,7 @@ export async function POST(request: NextRequest) {
 // GET endpoint to check analysis progress
 export async function GET(request: NextRequest) {
   try {
-    const { env } = getRequestContext();
+    const { env } = getCloudflareContext();
     const db = env.DB;
     
     // Get counts
@@ -123,7 +125,7 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error('Error checking analysis progress:', error);
     
-    if (error instanceof Error && error.message.includes('getRequestContext')) {
+    if (error instanceof Error && error.message.includes('getCloudflareContext')) {
       return NextResponse.json({
         total: 0,
         analyzed: 0,

@@ -1,10 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getRequestContext } from '@cloudflare/next-on-pages';
+import { getCloudflareContext } from '@opennextjs/cloudflare';
+
+export const runtime = 'edge';
 
 export async function GET(request: NextRequest) {
   try {
     // Get the Cloudflare context and D1 database
-    const { env } = getRequestContext();
+    const { env } = getCloudflareContext();
     const db = env.DB;
     
     // Get total message count
@@ -117,7 +119,7 @@ export async function GET(request: NextRequest) {
     console.error('Error generating insights:', error);
     
     // Fallback for local development
-    if (error instanceof Error && error.message.includes('getRequestContext')) {
+    if (error instanceof Error && error.message.includes('getCloudflareContext')) {
       return NextResponse.json({
         total: 0,
         bySender: [],
