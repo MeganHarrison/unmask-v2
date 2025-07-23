@@ -41,6 +41,7 @@ export default function MessagesPage() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [pagination, setPagination] = useState<PaginationData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState('');
   const [sender, setSender] = useState('');
   const [startDate, setStartDate] = useState<Date | undefined>();
@@ -49,6 +50,7 @@ export default function MessagesPage() {
 
   const fetchMessages = async () => {
     setLoading(true);
+    setError(null);
     try {
       const params = new URLSearchParams({
         page: page.toString(),
@@ -60,12 +62,20 @@ export default function MessagesPage() {
       });
 
       const response = await fetch(`/api/messages?${params}`);
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
       const data = await response.json() as { messages: Message[]; pagination: PaginationData };
       
       setMessages(data.messages || []);
       setPagination(data.pagination || null);
     } catch (error) {
       console.error('Error fetching messages:', error);
+      setError(error instanceof Error ? error.message : 'Failed to fetch messages');
+      setMessages([]);
+      setPagination(null);
     } finally {
       setLoading(false);
     }
@@ -160,6 +170,14 @@ export default function MessagesPage() {
           </div>
         </form>
       </div>
+
+      {/* Error Display */}
+      {error && (
+        <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700">
+          <p className="font-semibold">Error loading messages</p>
+          <p className="text-sm">{error}</p>
+        </div>
+      )}
 
       {/* Results Summary */}
       {pagination && (

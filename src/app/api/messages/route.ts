@@ -1,7 +1,6 @@
 // app/api/messages/route.ts
 // Connect to your D1 database with vectorization support
 
-export const runtime = 'edge';
 
 import { NextRequest } from 'next/server';
 import { getCloudflareContext } from '@opennextjs/cloudflare';
@@ -60,7 +59,7 @@ export async function GET(request: NextRequest) {
       const params = [`%${search}%`, `%${search}%`, limit, offset];
       
       const result = await db.prepare(query).bind(...params).all();
-      messages = result.results as Message[];
+      messages = (result.results as unknown) as Message[];
       
       // Get total count for pagination
       const countQuery = `
@@ -68,7 +67,7 @@ export async function GET(request: NextRequest) {
         WHERE (message LIKE ? OR sender LIKE ?)
       `;
       const countResult = await db.prepare(countQuery).bind(`%${search}%`, `%${search}%`).first();
-      totalCount = countResult?.count || 0;
+      totalCount = Number(countResult?.count || 0);
     } else {
       // Get all messages with pagination
       const query = `
@@ -78,11 +77,11 @@ export async function GET(request: NextRequest) {
       `;
       
       const result = await db.prepare(query).bind(limit, offset).all();
-      messages = result.results as Message[];
+      messages = (result.results as unknown) as Message[];
       
       // Get total count
       const countResult = await db.prepare('SELECT COUNT(*) as count FROM "texts-bc"').first();
-      totalCount = countResult?.count || 0;
+      totalCount = Number(countResult?.count || 0);
     }
 
     return new Response(
@@ -170,7 +169,7 @@ async function performVectorSearch(
         LIMIT ? OFFSET ?
       `;
       const result = await db.prepare(fallbackQuery).bind(`%${query}%`, limit, offset).all();
-      return result.results as Message[];
+      return (result.results as unknown) as Message[];
     }
 
     // Generate embedding for search query
@@ -200,7 +199,7 @@ async function performVectorSearch(
     `;
     
     const result = await db.prepare(messagesQuery).bind(...messageIds).all();
-    return result.results as Message[];
+    return (result.results as unknown) as Message[];
     
   } catch (error) {
     console.error('Vector search failed:', error);
@@ -212,7 +211,7 @@ async function performVectorSearch(
       LIMIT ? OFFSET ?
     `;
     const result = await db.prepare(fallbackQuery).bind(`%${query}%`, limit, offset).all();
-    return result.results as Message[];
+    return (result.results as unknown) as Message[];
   }
 }
 

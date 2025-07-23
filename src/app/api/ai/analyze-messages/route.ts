@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getCloudflareContext } from '@opennextjs/cloudflare';
 import OpenAI from 'openai';
 
-export const runtime = 'edge';
 
 // POST endpoint to analyze messages
 export async function POST(request: NextRequest) {
