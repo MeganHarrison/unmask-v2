@@ -1,265 +1,302 @@
+// app/insights/page.tsx
+// The actual insights page that shows AI analysis
+
 'use client';
 
 import { useState, useEffect } from 'react';
+import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { MessageFrequencyChart } from '@/components/charts/MessageFrequencyChart';
-import { SentimentChart } from '@/components/charts/SentimentChart';
-import { TrendingUp, TrendingDown, Users, AlertCircle, Calendar, Zap, MessageSquare } from 'lucide-react';
-import { Skeleton } from '@/components/ui/skeleton';
-import { AnalyzeButton } from '@/components/ui/AnalyzeButton';
+import { Badge } from '@/components/ui/badge';
+import { Progress } from '@/components/ui/progress';
+import { Brain, Heart, TrendingUp, AlertTriangle, Lightbulb } from 'lucide-react';
 
-interface MessageStats {
-  total: number;
-  bySender: { sender: string; count: number }[];
-  byDate: { date: string; count: number }[];
-  byMonth: { month: string; count: number }[];
-  sentimentOverview: {
-    positive: number;
-    negative: number;
-    neutral: number;
-    unanalyzed: number;
-  };
-  conflictCount: number;
-  averageMessagesPerDay: number;
-  longestStreak: number;
-  currentStreak: number;
+interface InsightsData {
+  relationshipHealth: number;
+  communicationQuality: number;
+  emotionalIntimacy: number;
+  conflictResolution: number;
+  keyStrengths: string[];
+  areasForGrowth: string[];
+  recentTrends: string;
+  actionableInsights: string[];
+  messageCount: number;
+  conflictRate?: number;
+  fallbackAnalysis?: boolean;
 }
 
 export default function InsightsPage() {
-  const [stats, setStats] = useState<MessageStats | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [insights, setInsights] = useState<InsightsData | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [timeRange, setTimeRange] = useState('30d');
+  const [analysisType, setAnalysisType] = useState('overview');
 
-  useEffect(() => {
-    fetchInsights();
-  }, []);
-
-  const fetchInsights = async () => {
+  const generateInsights = async () => {
+    setLoading(true);
+    setError(null);
+    
     try {
-      const response = await fetch('/api/insights/generate');
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      const data = await response.json() as MessageStats;
-      setStats(data);
-    } catch (error) {
-      console.error('Error fetching insights:', error);
-      // Set mock data for now to prevent crash
-      setStats({
-        total: 0,
-        bySender: [],
-        byDate: [],
-        byMonth: [],
-        sentimentOverview: {
-          positive: 0,
-          negative: 0,
-          neutral: 0,
-          unanalyzed: 0
-        },
-        conflictCount: 0,
-        averageMessagesPerDay: 0,
-        longestStreak: 0,
-        currentStreak: 0
+      const response = await fetch('/api/insights/analyze', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ timeRange, analysisType })
       });
+
+      if (!response.ok) {
+        throw new Error(`Analysis failed: ${response.status}`);
+      }
+
+      const data = await response.json();
+      
+      if (data.error) {
+        throw new Error(data.error);
+      }
+
+      setInsights(data.insights);
+      
+    } catch (err) {
+      console.error('Failed to generate insights:', err);
+      setError(err instanceof Error ? err.message : 'Failed to generate insights');
     } finally {
       setLoading(false);
     }
   };
 
-  const calculateMessageBalance = () => {
-    if (!stats || stats.bySender.length < 2) return 50;
-    const total = stats.bySender.reduce((sum, s) => sum + s.count, 0);
-    return Math.round((stats.bySender[0].count / total) * 100);
+  useEffect(() => {
+    generateInsights();
+  }, []);
+
+  const getHealthColor = (score: number) => {
+    if (score >= 8) return 'text-green-600';
+    if (score >= 6) return 'text-yellow-600';
+    return 'text-red-600';
   };
 
-  const getSentimentPercentage = (type: keyof MessageStats['sentimentOverview']) => {
-    if (!stats) return 0;
-    const total = stats.sentimentOverview.positive + 
-                  stats.sentimentOverview.negative + 
-                  stats.sentimentOverview.neutral;
-    if (total === 0) return 0;
-    return Math.round((stats.sentimentOverview[type] / total) * 100);
+  const getHealthBgColor = (score: number) => {
+    if (score >= 8) return 'bg-green-100';
+    if (score >= 6) return 'bg-yellow-100';
+    return 'bg-red-100';
   };
-
-  if (loading) {
-    return (
-      <div className="container mx-auto p-6">
-        <h1 className="text-3xl font-bold mb-6">Relationship Insights</h1>
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-          {[...Array(8)].map((_, i) => (
-            <Card key={i}>
-              <CardHeader>
-                <Skeleton className="h-4 w-32 mb-2" />
-                <Skeleton className="h-8 w-24" />
-              </CardHeader>
-            </Card>
-          ))}
-        </div>
-      </div>
-    );
-  }
-
-  if (!stats) {
-    return (
-      <div className="container mx-auto p-6">
-        <h1 className="text-3xl font-bold mb-6">Relationship Insights</h1>
-        <Card>
-          <CardContent className="p-6">
-            <p className="text-center text-gray-500">Failed to load insights</p>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
 
   return (
-    <div className="container mx-auto p-6">
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold mb-2">Relationship Insights</h1>
-        <p className="text-gray-600">Analyze your communication patterns and relationship health</p>
-        <div className="mt-4">
-          <AnalyzeButton />
-        </div>
+    <div className="container mx-auto p-6 space-y-6">
+      {/* Header */}
+      <div className="text-center mb-8">
+        <h1 className="text-4xl font-bold text-gray-900 mb-2">
+          <Brain className="inline mr-2 h-8 w-8" />
+          Relationship Insights
+        </h1>
+        <p className="text-gray-600">
+          GPT-4 powered analysis of your communication patterns and emotional dynamics
+        </p>
       </div>
 
-      {/* Key Metrics */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-6">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Messages</CardTitle>
-            <MessageSquare className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.total.toLocaleString()}</div>
-            <p className="text-xs text-muted-foreground">
-              Avg {stats.averageMessagesPerDay}/day
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Message Balance</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{calculateMessageBalance()}%</div>
-            <div className="text-xs text-muted-foreground">
-              {stats.bySender.map(s => `${s.sender}: ${s.count}`).join(' | ')}
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Current Streak</CardTitle>
-            <Zap className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.currentStreak} days</div>
-            <p className="text-xs text-muted-foreground">
-              Longest: {stats.longestStreak} days
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Conflicts Detected</CardTitle>
-            <AlertCircle className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.conflictCount}</div>
-            <p className="text-xs text-muted-foreground">
-              {((stats.conflictCount / stats.total) * 100).toFixed(1)}% of messages
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Charts Row */}
-      <div className="grid gap-6 md:grid-cols-2 mb-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Message Frequency</CardTitle>
-            <CardDescription>Daily message count over the last 30 days</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <MessageFrequencyChart data={stats.byDate} />
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Sentiment Analysis</CardTitle>
-            <CardDescription>Emotional tone distribution</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <SentimentChart data={stats.sentimentOverview} />
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Monthly Trends */}
+      {/* Controls */}
       <Card>
         <CardHeader>
-          <CardTitle>Monthly Communication Trends</CardTitle>
-          <CardDescription>Message volume by month</CardDescription>
+          <CardTitle>Analysis Settings</CardTitle>
+          <CardDescription>
+            Generate insights based on different time periods and analysis types
+          </CardDescription>
         </CardHeader>
-        <CardContent>
-          <MessageFrequencyChart 
-            data={stats.byMonth.map(item => ({
-              date: item.month,
-              count: item.count
-            }))} 
-            isMonthly
-          />
+        <CardContent className="space-y-4">
+          <div className="flex gap-4">
+            <div>
+              <label className="block text-sm font-medium mb-2">Time Range</label>
+              <select 
+                value={timeRange} 
+                onChange={(e) => setTimeRange(e.target.value)}
+                className="px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="7d">Last 7 days</option>
+                <option value="30d">Last 30 days</option>
+                <option value="90d">Last 90 days</option>
+              </select>
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium mb-2">Analysis Type</label>
+              <select 
+                value={analysisType} 
+                onChange={(e) => setAnalysisType(e.target.value)}
+                className="px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="overview">Relationship Overview</option>
+                <option value="emotional_patterns">Emotional Patterns</option>
+                <option value="conflict_analysis">Conflict Analysis</option>
+              </select>
+            </div>
+          </div>
+          
+          <Button onClick={generateInsights} disabled={loading}>
+            {loading ? 'Analyzing...' : 'Generate New Insights'}
+          </Button>
         </CardContent>
       </Card>
 
-      {/* Sentiment Breakdown */}
-      <div className="grid gap-4 md:grid-cols-3 mt-6">
-        <Card className="border-green-200 bg-green-50">
-          <CardHeader>
-            <CardTitle className="text-green-700">Positive Messages</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold text-green-700">
-              {getSentimentPercentage('positive')}%
-            </div>
-            <p className="text-sm text-green-600">
-              {stats.sentimentOverview.positive} messages
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card className="border-yellow-200 bg-yellow-50">
-          <CardHeader>
-            <CardTitle className="text-yellow-700">Neutral Messages</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold text-yellow-700">
-              {getSentimentPercentage('neutral')}%
-            </div>
-            <p className="text-sm text-yellow-600">
-              {stats.sentimentOverview.neutral} messages
-            </p>
-          </CardContent>
-        </Card>
-
+      {/* Error Display */}
+      {error && (
         <Card className="border-red-200 bg-red-50">
-          <CardHeader>
-            <CardTitle className="text-red-700">Negative Messages</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold text-red-700">
-              {getSentimentPercentage('negative')}%
+          <CardContent className="p-6">
+            <div className="flex items-center text-red-700">
+              <AlertTriangle className="mr-2 h-5 w-5" />
+              <span className="font-semibold">Analysis Error</span>
             </div>
-            <p className="text-sm text-red-600">
-              {stats.sentimentOverview.negative} messages
-            </p>
+            <p className="text-red-600 mt-2">{error}</p>
           </CardContent>
         </Card>
-      </div>
+      )}
+
+      {/* Loading State */}
+      {loading && (
+        <Card>
+          <CardContent className="p-8 text-center">
+            <Brain className="mx-auto h-12 w-12 text-blue-500 animate-pulse mb-4" />
+            <p className="text-gray-600">Analyzing your relationship patterns...</p>
+            <p className="text-sm text-gray-500 mt-2">This may take up to 30 seconds</p>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Insights Display */}
+      {insights && !loading && (
+        <div className="space-y-6">
+          {/* Relationship Health Scores */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <Card className={getHealthBgColor(insights.relationshipHealth || 0)}>
+              <CardContent className="p-6 text-center">
+                <Heart className={`mx-auto h-8 w-8 mb-2 ${getHealthColor(insights.relationshipHealth || 0)}`} />
+                <h3 className="text-sm font-medium text-gray-600">Relationship Health</h3>
+                <p className={`text-3xl font-bold ${getHealthColor(insights.relationshipHealth || 0)}`}>
+                  {(insights.relationshipHealth || 0).toFixed(1)}/10
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card className={getHealthBgColor(insights.communicationQuality || 0)}>
+              <CardContent className="p-6 text-center">
+                <TrendingUp className={`mx-auto h-8 w-8 mb-2 ${getHealthColor(insights.communicationQuality || 0)}`} />
+                <h3 className="text-sm font-medium text-gray-600">Communication Quality</h3>
+                <p className={`text-3xl font-bold ${getHealthColor(insights.communicationQuality || 0)}`}>
+                  {(insights.communicationQuality || 0).toFixed(1)}/10
+                </p>
+              </CardContent>
+            </Card>
+
+            {insights.emotionalIntimacy && (
+              <Card className={getHealthBgColor(insights.emotionalIntimacy)}>
+                <CardContent className="p-6 text-center">
+                  <Heart className={`mx-auto h-8 w-8 mb-2 ${getHealthColor(insights.emotionalIntimacy)}`} />
+                  <h3 className="text-sm font-medium text-gray-600">Emotional Intimacy</h3>
+                  <p className={`text-3xl font-bold ${getHealthColor(insights.emotionalIntimacy)}`}>
+                    {insights.emotionalIntimacy.toFixed(1)}/10
+                  </p>
+                </CardContent>
+              </Card>
+            )}
+
+            {insights.conflictResolution && (
+              <Card className={getHealthBgColor(insights.conflictResolution)}>
+                <CardContent className="p-6 text-center">
+                  <Lightbulb className={`mx-auto h-8 w-8 mb-2 ${getHealthColor(insights.conflictResolution)}`} />
+                  <h3 className="text-sm font-medium text-gray-600">Conflict Resolution</h3>
+                  <p className={`text-3xl font-bold ${getHealthColor(insights.conflictResolution)}`}>
+                    {insights.conflictResolution.toFixed(1)}/10
+                  </p>
+                </CardContent>
+              </Card>
+            )}
+          </div>
+
+          {/* Strengths and Growth Areas */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-green-700">💪 Key Strengths</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2">
+                  {insights.keyStrengths?.map((strength, index) => (
+                    <Badge key={index} variant="secondary" className="bg-green-100 text-green-800">
+                      {strength}
+                    </Badge>
+                  )) || (
+                    <p className="text-gray-500">No specific strengths identified in this analysis.</p>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-orange-700">🎯 Areas for Growth</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2">
+                  {insights.areasForGrowth?.map((area, index) => (
+                    <Badge key={index} variant="secondary" className="bg-orange-100 text-orange-800">
+                      {area}
+                    </Badge>
+                  )) || (
+                    <p className="text-gray-500">No specific growth areas identified in this analysis.</p>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Recent Trends */}
+          {insights.recentTrends && (
+            <Card>
+              <CardHeader>
+                <CardTitle>📈 Recent Trends</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-gray-700">{insights.recentTrends}</p>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Actionable Insights */}
+          <Card>
+            <CardHeader>
+              <CardTitle>💡 Actionable Insights</CardTitle>
+              <CardDescription>
+                Specific recommendations based on your communication patterns
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {insights.actionableInsights?.map((insight, index) => (
+                  <div key={index} className="flex items-start space-x-2">
+                    <Lightbulb className="h-5 w-5 text-blue-500 mt-0.5 flex-shrink-0" />
+                    <p className="text-gray-700">{insight}</p>
+                  </div>
+                )) || (
+                  <p className="text-gray-500">No specific insights available for this analysis.</p>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Analysis Metadata */}
+          <Card className="border-gray-200 bg-gray-50">
+            <CardContent className="p-4">
+              <div className="text-xs text-gray-500 space-y-1">
+                <p>Analysis based on {insights.messageCount} messages from the selected time period</p>
+                {insights.conflictRate && (
+                  <p>Conflict rate: {(insights.conflictRate * 100).toFixed(1)}%</p>
+                )}
+                {insights.fallbackAnalysis && (
+                  <p className="text-orange-600">
+                    ⚠️ Using pattern-based analysis (AI analysis unavailable)
+                  </p>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
     </div>
   );
 }
