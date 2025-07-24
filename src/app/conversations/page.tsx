@@ -30,7 +30,7 @@ export default function ConversationsPage() {
       const response = await fetch('/api/conversations?limit=10');
       if (!response.ok) throw new Error('Failed to fetch conversations');
       
-      const data = await response.json();
+      const data = await response.json() as { conversations: ConversationChunk[] };
       setConversations(data.conversations || []);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error loading conversations');
@@ -98,7 +98,7 @@ export default function ConversationsPage() {
       {conversations.length === 0 && (
         <div className="text-center py-12 text-gray-500">
           <h3 className="text-lg font-medium mb-2">No conversations found</h3>
-          <p>Your conversation chunks table might be empty or the API isn't working.</p>
+          <p>Your conversation chunks table might be empty or the API isn&apos;t working.</p>
         </div>
       )}
     </div>

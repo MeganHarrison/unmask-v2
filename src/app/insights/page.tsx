@@ -46,7 +46,7 @@ export default function InsightsPage() {
         throw new Error(`Analysis failed: ${response.status}`);
       }
 
-      const data = await response.json();
+      const data = await response.json() as any;
       
       if (data.error) {
         throw new Error(data.error);

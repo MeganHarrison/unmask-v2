@@ -4,7 +4,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { EditableMessageTable } from '@/components/EditableMessageTable';
+import { EditableMessageTable } from '@/components/ui/EditableMessageTable';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select } from '@/components/ui/select';

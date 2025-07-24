@@ -62,7 +62,7 @@ export default function Dashboard() {
       try {
         const messagesResponse = await fetch('/api/messages?limit=1');
         if (messagesResponse.ok) {
-          const messagesData = await messagesResponse.json();
+          const messagesData = await messagesResponse.json() as any;
           setDashboardData({
             stats: {
               totalMessages: messagesData.pagination.total.toLocaleString(),
