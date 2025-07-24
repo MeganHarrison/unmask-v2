@@ -4,7 +4,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { EditableMessageTable } from '@/components/ui/EditableMessageTable';
+import { EditableMessageTable } from '@/components/EditableMessageTable';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select } from '@/components/ui/select';
@@ -98,7 +98,7 @@ export default function EditMessagesPage() {
         throw new Error(`Update failed: ${response.status}`);
       }
 
-      const result = await response.json();
+      await response.json();
       
       // Update the message in the local state
       setMessages(prev => prev.map(msg => 
@@ -106,8 +106,6 @@ export default function EditMessagesPage() {
           ? { ...msg, ...updates }
           : msg
       ));
-
-      return result;
     } catch (error) {
       console.error('Failed to update message:', error);
       throw error;
@@ -225,7 +223,7 @@ export default function EditMessagesPage() {
                 Conflicts: {messages.filter(m => m.conflict_detected).length}
               </span>
               <span className="text-gray-500">
-                Unprocessed: {messages.filter(m => !m.processed_at).length}
+                Untagged: {messages.filter(m => !m.tags_json).length}
               </span>
             </div>
             <span>

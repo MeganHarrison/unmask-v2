@@ -21,23 +21,27 @@ export default function ConversationsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    fetchConversations();
-  }, []);
-
   const fetchConversations = async () => {
     try {
       const response = await fetch('/api/conversations?limit=10');
-      if (!response.ok) throw new Error('Failed to fetch conversations');
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Failed to fetch conversations: ${response.status} - ${errorText}`);
+      }
       
       const data = await response.json() as { conversations: ConversationChunk[] };
       setConversations(data.conversations || []);
     } catch (err) {
+      console.error('Conversations fetch error:', err);
       setError(err instanceof Error ? err.message : 'Error loading conversations');
     } finally {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchConversations();
+  }, []);
 
   if (loading) {
     return <div className="p-8">Loading conversations...</div>;
@@ -55,7 +59,7 @@ export default function ConversationsPage() {
       <div className="space-y-6">
         {conversations.map((conversation) => (
           <div 
-            key={conversation.id} 
+            key={conversation.id || Math.random()} 
             className={`p-6 border rounded-lg ${
               conversation.conflict_detected ? 'border-red-300 bg-red-50' : 'border-gray-300 bg-white'
             }`}
@@ -72,13 +76,13 @@ export default function ConversationsPage() {
                 )}
               </div>
               <div className="text-sm text-gray-500">
-                {new Date(conversation.start_time).toLocaleDateString()}
+                {conversation.start_time ? new Date(conversation.start_time).toLocaleDateString() : 'Date unknown'}
               </div>
             </div>
 
             <div className="flex items-center space-x-4 text-sm text-gray-600 mb-3">
               <span>{conversation.message_count} messages</span>
-              <span>Sentiment: {conversation.sentiment_score.toFixed(1)}/10</span>
+              <span>Sentiment: {conversation.sentiment_score ? conversation.sentiment_score.toFixed(1) : 'N/A'}/10</span>
               <span className={`px-2 py-1 rounded ${
                 conversation.emotional_tone === 'positive' ? 'bg-green-100 text-green-800' :
                 conversation.emotional_tone === 'negative' ? 'bg-red-100 text-red-800' :
