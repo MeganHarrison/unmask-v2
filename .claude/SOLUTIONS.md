@@ -103,7 +103,7 @@ npm run deploy:worker
 After running `npx opennextjs-cloudflare build`, you should see:
 - `.open-next/worker.js` - The main worker file
 - `.open-next/assets/` - Static assets directory
-- Message: "Worker saved in `.open-next/worker.js` =€"
+- Message: "Worker saved in `.open-next/worker.js` =ï¿½"
 
 If these files aren't created, the build failed and you need to check the error messages.
 
@@ -114,3 +114,95 @@ The key insight is that **OpenNext requires a two-step deployment process**:
 2. Deploy with wrangler
 
 This is different from standard Cloudflare Workers where `wrangler deploy` might handle the build automatically. With OpenNext, you must explicitly build first to transform your Next.js app into a Cloudflare Worker-compatible format.
+
+## Client-Side Hydration Issues with OpenNext
+
+### Problem
+Client-side React components using `'use client'` may get stuck in loading states when deployed to Cloudflare Workers with OpenNext. The page loads but React hydration fails, preventing useEffect hooks from running.
+
+### Symptoms
+- Pages show "Loading..." indefinitely
+- API endpoints work correctly when accessed directly
+- Server-side rendered pages work fine
+- Client components with useEffect don't execute
+- Dashboard and static pages work, but dynamic pages with data fetching don't
+
+### Root Cause
+OpenNext and Cloudflare Workers have compatibility issues with Next.js client-side hydration. The JavaScript loads but doesn't properly hydrate the React components.
+
+### Solution
+Use a hybrid approach with server-side data fetching and client-side interactivity:
+
+#### 1. **Create a server component that fetches data:**
+```typescript
+// app/messages-fixed/page.tsx
+import { getCloudflareContext } from '@opennextjs/cloudflare';
+import MessagesClient from './messages-client';
+
+interface SearchParams {
+  page?: string;
+  limit?: string;
+}
+
+export default async function MessagesPage({
+  searchParams,
+}: {
+  searchParams: Promise<SearchParams>; // Note: Promise in Next.js 15
+}) {
+  const params = await searchParams;
+  const { env } = await getCloudflareContext({ async: true });
+  const db = env.DB;
+  
+  // Fetch data server-side
+  const result = await db.prepare(`
+    SELECT * FROM messages 
+    LIMIT ? OFFSET ?
+  `).bind(limit, offset).all();
+  
+  // Pass to client component
+  return <MessagesClient initialMessages={result.results} />;
+}
+```
+
+#### 2. **Create a client component for interactivity:**
+```typescript
+// app/messages-fixed/messages-client.tsx
+'use client';
+
+import { useRouter } from 'next/navigation';
+
+export default function MessagesClient({ initialMessages }) {
+  const router = useRouter();
+  
+  // Use the initial data passed from server
+  // Add client-side interactions
+  const handleSearch = () => {
+    router.push(`/messages-fixed?search=${searchValue}`);
+  };
+  
+  return (
+    <div>
+      {/* Render messages with client-side features */}
+    </div>
+  );
+}
+```
+
+### Key Points
+- Always use `await getCloudflareContext({ async: true })` in server components
+- In Next.js 15, searchParams is a Promise that must be awaited
+- Pass initial data from server to client components as props
+- Avoid relying solely on useEffect for initial data loading
+- Use router.push() for client-side navigation with new parameters
+
+### Working Example
+See `/messages-fixed` in the codebase for a complete working implementation that:
+- Fetches 27,000+ messages from D1 database
+- Supports pagination
+- Handles search and filtering
+- Works reliably on Cloudflare Workers
+
+### Alternative Approaches
+1. **Pure server-side rendering**: Avoid client components entirely
+2. **API-based approach**: Use server components only for layout, fetch all data via API
+3. **Static generation**: Pre-render pages at build time when possible
