@@ -7,34 +7,41 @@ export async function GET(request: NextRequest) {
     const { env } = getCloudflareContext();
     const db = env.DB;
     
-    // Test 1: List all tables
-    const tables = await db.prepare(`
-      SELECT name FROM sqlite_master 
-      WHERE type='table' 
+    // Get all tables with their SQL definitions
+    const tablesResult = await db.prepare(`
+      SELECT name, type, tbl_name, rootpage, sql 
+      FROM sqlite_master 
+      WHERE type = 'table' 
+      AND name NOT LIKE 'sqlite_%'
+      AND name NOT LIKE '_cf_%'
       ORDER BY name
     `).all();
     
-    // Test 2: Get table info for texts-bc
-    const tableInfo = await db.prepare(`
-      PRAGMA table_info("texts-bc")
-    `).all();
-    
-    // Test 3: Get a sample message
-    const sampleMessage = await db.prepare(`
-      SELECT * FROM "texts-bc" 
-      LIMIT 1
-    `).first();
-    
-    // Test 4: Count messages
-    const messageCount = await db.prepare(`
-      SELECT COUNT(*) as count FROM "texts-bc"
-    `).first();
+    // Get detailed column info for each table
+    const tableDetails = [];
+    for (const table of tablesResult.results || []) {
+      const columnsResult = await db.prepare(`
+        PRAGMA table_info("${table.name}")
+      `).all();
+      
+      // Get row count for each table
+      const countResult = await db.prepare(`
+        SELECT COUNT(*) as count FROM "${table.name}"
+      `).first();
+      
+      tableDetails.push({
+        name: table.name,
+        type: table.type,
+        sql: table.sql,
+        columns: columnsResult.results,
+        rowCount: countResult?.count || 0
+      });
+    }
     
     return NextResponse.json({
-      tables: tables.results,
-      tableInfo: tableInfo.results,
-      sampleMessage,
-      messageCount,
+      tables: tablesResult.results || [],
+      tableDetails,
+      totalTables: tablesResult.results?.length || 0,
       success: true
     });
     

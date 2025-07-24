@@ -62,6 +62,14 @@ Build an AI-powered relationship intelligence platform that transforms raw text 
 **Database ID**: `f450193b-9536-4ada-8271-2a8cd917069e`
 **Database Name**: `megan-personal`
 
+### **Database Inspection Tool**
+A database inspection page has been created at `/test-db` to view all existing tables and their structures.
+
+**Access the tool:**
+1. Start the development server: `npm run dev`
+2. Navigate to: `http://localhost:3000/test-db`
+3. View all tables, columns, data types, and row counts
+
 ### **Existing Tables Found:**
 ✅ **Core Tables Already Created:**
 - `texts-bc` - Text messages (likely main message table)
