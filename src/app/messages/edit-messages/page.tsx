@@ -7,7 +7,6 @@ import { useState, useEffect } from 'react';
 import { EditableMessageTable } from '@/components/EditableMessageTable';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Select } from '@/components/ui/select';
 import { CalendarIcon, Search, Edit, AlertTriangle } from 'lucide-react';
 import { format } from 'date-fns';
 import { Calendar } from '@/components/ui/calendar';
@@ -138,32 +137,40 @@ export default function EditMessagesPage() {
       <div className="bg-white p-4 rounded-lg shadow mb-6">
         <form onSubmit={handleSearch} className="space-y-4">
           <div className="flex gap-4">
-            <div className="flex-1">
+            <div className="flex-1 relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
               <Input
                 type="text"
                 placeholder="Search messages..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="w-full"
-                icon={<Search className="h-4 w-4" />}
+                className="w-full pl-10"
               />
             </div>
             <Button type="submit">Search</Button>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <Select value={sender} onChange={(e) => setSender(e.target.value)}>
+            <select 
+              value={sender} 
+              onChange={(e) => setSender(e.target.value)}
+              className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
               <option value="">All Senders</option>
               <option value="You">You</option>
               <option value="Brandon">Brandon</option>
-            </Select>
+            </select>
 
-            <Select value={conflictFilter} onChange={(e) => setConflictFilter(e.target.value)}>
+            <select 
+              value={conflictFilter} 
+              onChange={(e) => setConflictFilter(e.target.value)}
+              className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
               <option value="">All Messages</option>
               <option value="conflicts">Conflicts Only</option>
               <option value="peaceful">Peaceful Only</option>
               <option value="untagged">Unprocessed Only</option>
-            </Select>
+            </select>
 
             <Popover>
               <PopoverTrigger asChild>

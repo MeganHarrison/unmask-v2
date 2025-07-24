@@ -38,7 +38,7 @@ export default function TestDBPage() {
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
-        const result = await response.json();
+        const result = await response.json() as DatabaseInfo;
         setData(result);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'An error occurred');

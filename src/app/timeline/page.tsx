@@ -6,13 +6,13 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 const API_BASE_URL = 'https://your-unmask-api.your-subdomain.workers.dev'; // Replace with your actual Worker URL
 
 const RelationshipTimeline = () => {
-  const [timelineData, setTimelineData] = useState([]);
-  const [selectedMonth, setSelectedMonth] = useState(null);
-  const [drillDownData, setDrillDownData] = useState(null);
-  const [aiAnalysis, setAiAnalysis] = useState(null);
+  const [timelineData, setTimelineData] = useState<any[]>([]);
+  const [selectedMonth, setSelectedMonth] = useState<string | null>(null);
+  const [drillDownData, setDrillDownData] = useState<any>(null);
+  const [aiAnalysis, setAiAnalysis] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [analysisLoading, setAnalysisLoading] = useState(false);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<string | null>(null);
 
   // Load initial timeline data
   useEffect(() => {
@@ -23,41 +23,41 @@ const RelationshipTimeline = () => {
     try {
       setLoading(true);
       const response = await fetch(`${API_BASE_URL}/api/timeline`);
-      const data = await response.json();
+      const data = await response.json() as { success: boolean; data?: any; error?: string };
       
       if (data.success) {
         setTimelineData(data.data);
         setError(null);
       } else {
-        setError(data.error);
+        setError(data.error || 'Failed to fetch timeline data');
       }
     } catch (err) {
-      setError('Failed to load timeline data: ' + err.message);
+      setError('Failed to load timeline data: ' + (err instanceof Error ? err.message : 'Unknown error'));
     } finally {
       setLoading(false);
     }
   };
 
-  const loadMonthDetails = async (month) => {
+  const loadMonthDetails = async (month: string) => {
     try {
       setSelectedMonth(month);
       setDrillDownData(null);
       setAiAnalysis(null);
       
       const response = await fetch(`${API_BASE_URL}/api/month/${month}`);
-      const data = await response.json();
+      const data = await response.json() as { success: boolean; data?: any; error?: string };
       
       if (data.success) {
         setDrillDownData(data.data);
       } else {
-        setError(data.error);
+        setError(data.error || 'Failed to load month details');
       }
     } catch (err) {
-      setError('Failed to load month details: ' + err.message);
+      setError('Failed to load month details: ' + (err instanceof Error ? err.message : 'Unknown error'));
     }
   };
 
-  const generateAIAnalysis = async (month) => {
+  const generateAIAnalysis = async (month: string) => {
     try {
       setAnalysisLoading(true);
       const response = await fetch(`${API_BASE_URL}/api/analyze`, {
@@ -66,22 +66,22 @@ const RelationshipTimeline = () => {
         body: JSON.stringify({ month })
       });
       
-      const data = await response.json();
+      const data = await response.json() as { success: boolean; data?: any; error?: string };
       
       if (data.success) {
         setAiAnalysis(data.data);
       } else {
-        setError(data.error);
+        setError(data.error || 'Failed to generate AI analysis');
       }
     } catch (err) {
-      setError('Failed to generate AI analysis: ' + err.message);
+      setError('Failed to generate AI analysis: ' + (err instanceof Error ? err.message : 'Unknown error'));
     } finally {
       setAnalysisLoading(false);
     }
   };
 
-  const getBarColor = (phase) => {
-    const colors = {
+  const getBarColor = (phase: string) => {
+    const colors: Record<string, string> = {
       'Peak Connection': '#10B981', // Emerald
       'Romantic Phase': '#F59E0B',  // Amber
       'Supportive Period': '#3B82F6', // Blue
@@ -92,11 +92,11 @@ const RelationshipTimeline = () => {
     return colors[phase] || '#6B7280';
   };
 
-  const handleBarClick = (data) => {
+  const handleBarClick = (data: any) => {
     loadMonthDetails(data.month);
   };
 
-  const CustomTooltip = ({ active, payload, label }) => {
+  const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
       const data = payload[0].payload;
       return (
@@ -116,8 +116,8 @@ const RelationshipTimeline = () => {
     return null;
   };
 
-  const AnalysisSection = ({ title, content, color = 'emerald' }) => {
-    const colorClasses = {
+  const AnalysisSection = ({ title, content, color = 'emerald' }: { title: string; content: string; color?: string }) => {
+    const colorClasses: Record<string, string> = {
       emerald: 'border-emerald-400 text-emerald-400',
       blue: 'border-blue-400 text-blue-400',
       purple: 'border-purple-400 text-purple-400',
@@ -207,7 +207,7 @@ const RelationshipTimeline = () => {
                 cursor="pointer"
                 onClick={handleBarClick}
               >
-                {timelineData.map((entry, index) => (
+                {timelineData.map((entry: any, index: number) => (
                   <Cell key={`cell-${index}`} fill={getBarColor(entry.relationship_phase)} />
                 ))}
               </Bar>
@@ -294,7 +294,7 @@ const RelationshipTimeline = () => {
                     <div className="bg-gray-700 rounded-lg p-6">
                       <h3 className="text-xl font-bold mb-4 text-purple-400">Major Events This Month</h3>
                       <ul className="space-y-2">
-                        {drillDownData.context.major_events.map((event, index) => (
+                        {drillDownData.context.major_events.map((event: any, index: number) => (
                           <li key={index} className="flex items-center text-sm">
                             <span className="w-2 h-2 bg-purple-400 rounded-full mr-3"></span>
                             {event}
@@ -369,7 +369,7 @@ const RelationshipTimeline = () => {
                           <div className="bg-gray-600 rounded-lg p-4 mt-4">
                             <h4 className="font-bold text-emerald-400 mb-2">💡 Action Items</h4>
                             <ul className="space-y-1">
-                              {aiAnalysis.action_items.map((item, index) => (
+                              {aiAnalysis.action_items.map((item: any, index: number) => (
                                 <li key={index} className="text-gray-300 text-sm">• {item}</li>
                               ))}
                             </ul>
