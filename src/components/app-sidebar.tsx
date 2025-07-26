@@ -19,7 +19,7 @@ import {
 const data = {
   navMain: [
     {
-      title: "Dashboard",
+      title: "Home",
       url: "/",
       items: [
         {
@@ -29,6 +29,54 @@ const data = {
         {
           title: "Insights",
           url: "/insights",
+        },
+        {
+          title: "AI Chat",
+          url: "/chat",
+        },
+         {
+          title: "Analyzer",
+          url: "/analyzer",
+        },
+        {
+          title: "Chart Example",
+          url: "/chart-example",
+        },
+         {
+          title: "Blog",
+          url: "/blog",
+        },
+        {
+          title: "Conversations",
+          url: "/conversations",
+        },
+        {
+          title: "Conversations Fixed",
+          url: "/conversations-fixed",
+        },
+        {
+          title: "Dashboard",
+          url: "/dashboard",
+        },
+         {
+          title: "Dashboard 2",
+          url: "/dashboard2",
+        },
+        {
+          title: "Messages Fixed",
+          url: "/messages-fixed",
+        },
+        {
+          title: "Relationship Dashboard",
+          url: "/relationship-dashboard",
+        },
+        {
+          title: "Timeline",
+          url: "/timeline",
+        },
+        {
+          title: "Timeline",
+          url: "/timeline-dashboard",
         },
       ],
     },
@@ -44,96 +92,6 @@ const data = {
           title: "Data Fetching",
           url: "/timeline",
           isActive: true,
-        },
-        {
-          title: "Rendering",
-          url: "/timeline-dashboard",
-        },
-        {
-          title: "Caching",
-          url: "#",
-        },
-        {
-          title: "Styling",
-          url: "#",
-        },
-        {
-          title: "Optimizing",
-          url: "#",
-        },
-        {
-          title: "Configuring",
-          url: "#",
-        },
-        {
-          title: "Examples",
-          url: "#",
-        },
-      ],
-    },
-    {
-      title: "API Reference",
-      url: "#",
-      items: [
-        {
-          title: "Components",
-          url: "#",
-        },
-        {
-          title: "File Conventions",
-          url: "#",
-        },
-        {
-          title: "Functions",
-          url: "#",
-        },
-        {
-          title: "next.config.js Options",
-          url: "#",
-        },
-        {
-          title: "CLI",
-          url: "#",
-        },
-        {
-          title: "Edge Runtime",
-          url: "#",
-        },
-      ],
-    },
-    {
-      title: "Architecture",
-      url: "#",
-      items: [
-        {
-          title: "Accessibility",
-          url: "#",
-        },
-        {
-          title: "Fast Refresh",
-          url: "#",
-        },
-        {
-          title: "Next.js Compiler",
-          url: "#",
-        },
-        {
-          title: "Supported Browsers",
-          url: "#",
-        },
-        {
-          title: "Turbopack",
-          url: "#",
-        },
-      ],
-    },
-    {
-      title: "Community",
-      url: "#",
-      items: [
-        {
-          title: "Contribution Guide",
-          url: "#",
         },
       ],
     },

@@ -1,0 +1,11 @@
+name = "hyperdrive-supabase-mkh"
+main = "src/index.js"
+compatibility_date = "2024-01-01"
+
+[[hyperdrive]]
+binding = "HYPERDRIVE"
+id = "ad08b384ca4a4383ad61a0ce6deeba75"
+
+[vars]
+SUPABASE_URL = "https://dsnsuagkzkuzzjwvuomi.supabase.co"
+SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRzbnN1YWdremt1enpqd3Z1b21pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQwNDY1MTQsImV4cCI6MjA1OTYyMjUxNH0.HN5rZs0oaoZGoppTLJjMUlis2qEDjq2_RWs8Q3mtqjc"

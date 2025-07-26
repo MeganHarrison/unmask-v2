@@ -1,5 +1,17 @@
 # Unmask: Complete Project Structure & File Checklist
 
+## Tasks
+- Remove average and trend from progression chart
+
+1. Remove icon next to sender name
+2. Remove conflict column
+3. Update relationship progression sidebar:
+    - Display related text messages
+    - Display related jounrnal entries
+    - Display related events
+    - Include AI summary and analysis
+    - Include chat
+
 ## 📁 Project Root Structure
 
 ```

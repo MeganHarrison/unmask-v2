@@ -22,7 +22,20 @@
       "database_id": "f450193b-9536-4ada-8271-2a8cd917069e"
     }
   ],
+  "hyperdrive": [
+      {
+        "binding": "HYPERDRIVE",
+        "id": "d4428fa929f54c8c8fc66db9ac5cd201",
+        "localConnectionString": "postgresql://postgres.dsnsuagkzkuzzjwvuomi:LqRmThEbXpZyWnVb@aws-0-us-east-1.pooler.supabase.com:6543/postgres"
+      }
+    ],
+  "vectorize": [
+    {
+      "binding": "VECTORIZE_INDEX",
+      "index_name": "relationship-insights-1536"
+    }
+  ],
   "vars": {
-    "OPENAI_API_KEY": ""
+    // Add OPENAI_API_KEY to environment variables or use wrangler secret put OPENAI_API_KEY
   }
 }

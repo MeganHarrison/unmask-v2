@@ -108,12 +108,19 @@ import {
 
 export const schema = z.object({
   id: z.number(),
-  header: z.string(),
-  type: z.string(),
-  status: z.string(),
-  target: z.string(),
-  limit: z.string(),
-  reviewer: z.string(),
+  sender: z.string().optional(),
+  message: z.string().optional(),
+  date_time: z.string().optional(),
+  tag: z.string().optional(),
+  notes: z.string().optional(),
+  category: z.string().optional(),
+  // Legacy fields for compatibility
+  header: z.string().optional(),
+  type: z.string().optional(),
+  status: z.string().optional(),
+  target: z.string().optional(),
+  limit: z.string().optional(),
+  reviewer: z.string().optional(),
 })
 
 // Create a separate component for the drag handle
@@ -169,16 +176,16 @@ const columns: ColumnDef<z.infer<typeof schema>>[] = [
     enableHiding: false,
   },
   {
-    accessorKey: "header",
-    header: "Header",
+    accessorKey: "message",
+    header: "Message",
     cell: ({ row }) => {
       return <TableCellViewer item={row.original} />
     },
     enableHiding: false,
   },
   {
-    accessorKey: "type",
-    header: "Section Type",
+    accessorKey: "sender",
+    header: "Sender",
     cell: ({ row }) => (
       <div className="w-32">
         <Badge variant="outline" className="text-muted-foreground px-1.5">
@@ -188,8 +195,8 @@ const columns: ColumnDef<z.infer<typeof schema>>[] = [
     ),
   },
   {
-    accessorKey: "status",
-    header: "Status",
+    accessorKey: "tag",
+    header: "Tag",
     cell: ({ row }) => (
       <Badge variant="outline" className="text-muted-foreground px-1.5">
         {row.original.status === "Done" ? (
@@ -202,8 +209,8 @@ const columns: ColumnDef<z.infer<typeof schema>>[] = [
     ),
   },
   {
-    accessorKey: "target",
-    header: () => <div className="w-full text-right">Target</div>,
+    accessorKey: "date_time",
+    header: () => <div className="w-full text-right">Date</div>,
     cell: ({ row }) => (
       <form
         onSubmit={(e) => {
@@ -419,14 +426,14 @@ export function DataTable({
             <SelectValue placeholder="Select a view" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="outline">Outline</SelectItem>
-            <SelectItem value="past-performance">Past Performance</SelectItem>
-            <SelectItem value="key-personnel">Key Personnel</SelectItem>
-            <SelectItem value="focus-documents">Focus Documents</SelectItem>
+            <SelectItem value="outline">All</SelectItem>
+            <SelectItem value="past-performance">Affectionate</SelectItem>
+            <SelectItem value="key-personnel">Conflict</SelectItem>
+            <SelectItem value="focus-documents">Neutral</SelectItem>
           </SelectContent>
         </Select>
         <TabsList className="**:data-[slot=badge]:bg-muted-foreground/30 hidden **:data-[slot=badge]:size-5 **:data-[slot=badge]:rounded-full **:data-[slot=badge]:px-1 @4xl/main:flex">
-          <TabsTrigger value="outline">Outline</TabsTrigger>
+          <TabsTrigger value="outline">All</TabsTrigger>
           <TabsTrigger value="past-performance">
             Past Performance <Badge variant="secondary">3</Badge>
           </TabsTrigger>
