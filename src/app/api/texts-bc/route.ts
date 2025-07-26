@@ -98,7 +98,7 @@ export async function GET(request: NextRequest) {
         conflict_detected
       FROM "texts-bc" 
       ${whereClause}
-      ORDER BY date_time DESC 
+      ORDER BY date_time ASC
       LIMIT ? OFFSET ?
     `;
 
