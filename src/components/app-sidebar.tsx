@@ -1,5 +1,8 @@
+"use client"
+
 import * as React from "react"
 import { GalleryVerticalEnd } from "lucide-react"
+import Image from "next/image"
 
 import {
   Sidebar,
@@ -14,135 +17,78 @@ import {
   SidebarMenuSubItem,
   SidebarRail,
 } from "@/components/ui/sidebar"
+import { getStaticPageList, type PageInfo } from "@/lib/page-discovery"
 
-// This is sample data.
-const data = {
-  navMain: [
-    {
-      title: "Home",
-      url: "/",
-      items: [
-        {
-          title: "Messages",
-          url: "/messages",
-        },
-        {
-          title: "Insights",
-          url: "/insights",
-        },
-        {
-          title: "AI Chat",
-          url: "/chat",
-        },
-         {
-          title: "Analyzer",
-          url: "/analyzer",
-        },
-        {
-          title: "Chart Example",
-          url: "/chart-example",
-        },
-         {
-          title: "Blog",
-          url: "/blog",
-        },
-        {
-          title: "Conversations",
-          url: "/conversations",
-        },
-        {
-          title: "Conversations Fixed",
-          url: "/conversations-fixed",
-        },
-        {
-          title: "Dashboard",
-          url: "/dashboard",
-        },
-         {
-          title: "Dashboard 2",
-          url: "/dashboard2",
-        },
-        {
-          title: "Messages Fixed",
-          url: "/messages-fixed",
-        },
-        {
-          title: "Relationship Dashboard",
-          url: "/relationship-dashboard",
-        },
-        {
-          title: "Timeline",
-          url: "/timeline",
-        },
-        {
-          title: "Timeline",
-          url: "/timeline-dashboard",
-        },
-      ],
-    },
-    {
-      title: "Building Your Application",
-      url: "#",
-      items: [
-        {
-          title: "Analyzer",
-          url: "/analyzer",
-        },
-        {
-          title: "Data Fetching",
-          url: "/timeline",
-          isActive: true,
-        },
-      ],
-    },
-  ],
+// Group pages by category
+function groupPagesByCategory(pages: PageInfo[]) {
+  const grouped: Record<string, PageInfo[]> = {
+    'Main': [],
+  };
+  
+  pages.forEach(page => {
+    const category = page.category || 'Main';
+    if (!grouped[category]) {
+      grouped[category] = [];
+    }
+    grouped[category].push(page);
+  });
+  
+  return grouped;
 }
 
+// Get all pages and organize them
+const allPages = getStaticPageList();
+const groupedPages = groupPagesByCategory(allPages);
+
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const [currentPath, setCurrentPath] = React.useState('');
+
+  React.useEffect(() => {
+    // Set the current path on mount and when it changes
+    setCurrentPath(window.location.pathname);
+  }, []);
+
   return (
     <Sidebar {...props}>
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton size="lg" asChild>
-              <a href="#">
-                <div className="bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg">
-                  <GalleryVerticalEnd className="size-4" />
-                </div>
-                <div className="flex flex-col gap-0.5 leading-none">
-                  <span className="font-medium">Documentation</span>
-                  <span className="">v1.0.0</span>
-                </div>
+              <a href="/">
+                <Image 
+                  src="/unmask2.png" 
+                  alt="Unmask" 
+                  width={120} 
+                  height={40} 
+                  className="h-8 w-auto"
+                />
               </a>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
-        <SidebarGroup>
-          <SidebarMenu>
-            {data.navMain.map((item) => (
-              <SidebarMenuItem key={item.title}>
-                <SidebarMenuButton asChild>
-                  <a href={item.url} className="font-medium">
-                    {item.title}
-                  </a>
-                </SidebarMenuButton>
-                {item.items?.length ? (
-                  <SidebarMenuSub>
-                    {item.items.map((item) => (
-                      <SidebarMenuSubItem key={item.title}>
-                        <SidebarMenuSubButton asChild isActive={item.isActive}>
-                          <a href={item.url}>{item.title}</a>
-                        </SidebarMenuSubButton>
-                      </SidebarMenuSubItem>
-                    ))}
-                  </SidebarMenuSub>
-                ) : null}
-              </SidebarMenuItem>
-            ))}
-          </SidebarMenu>
-        </SidebarGroup>
+        {Object.entries(groupedPages).map(([category, pages]) => (
+          <SidebarGroup key={category}>
+            <div className="px-3 py-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+              {category}
+            </div>
+            <SidebarMenu>
+              {pages.map((page) => {
+                const isActive = currentPath === page.url;
+                return (
+                  <SidebarMenuItem key={page.url}>
+                    <SidebarMenuButton asChild isActive={isActive}>
+                      <a href={page.url}>
+                        {page.title}
+                      </a>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                );
+              })}
+            </SidebarMenu>
+          </SidebarGroup>
+        ))}
       </SidebarContent>
       <SidebarRail />
     </Sidebar>
