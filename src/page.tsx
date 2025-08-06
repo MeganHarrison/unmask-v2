@@ -39,14 +39,14 @@ export default function Page() {
   const [textsLoading, setTextsLoading] = useState(true);
   const [textsPagination, setTextsPagination] = useState({
     page: 1,
-    limit: 50,
+    limit: 100,
     total: 0,
     totalPages: 0
   });
   const [selectedMonthMessages, setSelectedMonthMessages] = useState<TextMessage[]>([]);
   const [selectedMonthLoading, setSelectedMonthLoading] = useState(false);
 
-  const fetchTextsData = async (page: number = 1, limit: number = 50) => {
+  const fetchTextsData = async (page: number = 1, limit: number = 100) => {
     setTextsLoading(true);
     try {
       const response = await fetch(`/api/texts-bc?page=${page}&limit=${limit}`);
@@ -83,7 +83,7 @@ export default function Page() {
       const endDate = new Date(year, month + 1, 0, 23, 59, 59); // Last day of month
       
       // Fetch messages for this date range
-      const response = await fetch(`/api/texts-bc?start_date=${startDate.toISOString()}&end_date=${endDate.toISOString()}&limit=100`);
+      const response = await fetch(`/api/texts-bc?start_date=${startDate.toISOString()}&end_date=${endDate.toISOString()}&limit=1000`);
       const result: TextsApiResponse = await response.json();
       
       if (result.success && result.data) {
