@@ -14,7 +14,7 @@ interface TextMessage {
 
 export async function GET(request: NextRequest) {
   try {
-    const context = getCloudflareContext();
+    const context = await getCloudflareContext();
     const db = context?.env?.DB;
 
     if (!db) {
@@ -77,6 +77,7 @@ export async function GET(request: NextRequest) {
     const offset = (page - 1) * limit;
     const startDate = url.searchParams.get('start_date');
     const endDate = url.searchParams.get('end_date');
+    const tag = url.searchParams.get('tag');
 
     let whereClause = '';
     const queryParams: any[] = [];
@@ -85,8 +86,35 @@ export async function GET(request: NextRequest) {
       whereClause = 'WHERE date_time >= ? AND date_time <= ?';
       queryParams.push(startDate, endDate);
     }
+    
+    if (tag) {
+      if (whereClause) {
+        whereClause += ' AND LOWER(tag) = LOWER(?)';
+      } else {
+        whereClause = 'WHERE LOWER(tag) = LOWER(?)';
+      }
+      queryParams.push(tag);
+    }
 
+    // Use ROW_NUMBER to get unique messages (one per date_time + message combination)
     const query = `
+      WITH RankedMessages AS (
+        SELECT 
+          id,
+          date_time,
+          sender,
+          message,
+          sentiment,
+          category,
+          tag,
+          conflict_detected,
+          ROW_NUMBER() OVER (
+            PARTITION BY date_time, TRIM(message) 
+            ORDER BY id
+          ) as rn
+        FROM "texts-bc" 
+        ${whereClause}
+      )
       SELECT 
         id,
         date_time,
@@ -96,20 +124,31 @@ export async function GET(request: NextRequest) {
         category,
         tag,
         conflict_detected
-      FROM "texts-bc" 
-      ${whereClause}
-      ORDER BY date_time DESC 
+      FROM RankedMessages
+      WHERE rn = 1
+      ORDER BY date_time ASC 
       LIMIT ? OFFSET ?
     `;
 
-    const countQuery = `SELECT COUNT(*) as total FROM "texts-bc" ${whereClause}`;
+    // Count unique messages
+    const countQuery = `
+      WITH UniqueMessages AS (
+        SELECT DISTINCT date_time, TRIM(message) as message
+        FROM "texts-bc" 
+        ${whereClause}
+      )
+      SELECT COUNT(*) as total FROM UniqueMessages
+    `;
 
     // Add limit and offset to query params
     queryParams.push(limit, offset);
 
+    // Prepare parameters for count query (without limit and offset)
+    const countQueryParams = [...queryParams.slice(0, -2)];
+
     const [results, countResult] = await Promise.all([
       db.prepare(query).bind(...queryParams).all(),
-      db.prepare(countQuery).bind(...(whereClause ? [startDate, endDate] : [])).first()
+      db.prepare(countQuery).bind(...countQueryParams).first()
     ]);
 
     const messages = results.results as unknown as TextMessage[];

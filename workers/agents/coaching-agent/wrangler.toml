@@ -1,0 +1,15 @@
+name = "unmask-coaching"
+main = "index.ts"
+compatibility_date = "2024-01-01"
+
+[env.production]
+vars = { ENVIRONMENT = "production" }
+
+[[env.production.kv_namespaces]]
+binding = "COACHING_KV"
+id = "c370e6b5d3214fa5b41897e4d2998c2b"
+
+[[env.production.d1_databases]]
+binding = "USER_CONTEXT_D1"
+database_name = "mkh-personal"
+database_id = "f450193b-9536-4ada-8271-2a8cd917069e"

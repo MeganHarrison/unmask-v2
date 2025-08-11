@@ -121,6 +121,24 @@ export function ChartDataDetail({ dataPoint, config, allData = [], messages = []
         </CardHeader>
       </Card>
 
+      {/* Image Placeholder */}
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-sm font-medium text-gray-600">
+            Monthly Photo
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="pt-0">
+          <div className="relative w-full aspect-video bg-gray-100 rounded-lg border border-gray-200 flex items-center justify-center">
+            <div className="text-center">
+              <div className="text-4xl mb-2">📸</div>
+              <p className="text-sm text-gray-500">Image placeholder</p>
+              <p className="text-xs text-gray-400 mt-1">Upload photo for {dataPoint[config.xAxisKey]}</p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Trend Information */}
       {trend && (
         <Card>

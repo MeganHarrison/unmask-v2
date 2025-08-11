@@ -1,302 +1,281 @@
-// app/insights/page.tsx
-// The actual insights page that shows AI analysis
+"use client";
 
-'use client';
-
-import { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
-import { Brain, Heart, TrendingUp, AlertTriangle, Lightbulb } from 'lucide-react';
-
-interface InsightsData {
-  relationshipHealth: number;
-  communicationQuality: number;
-  emotionalIntimacy: number;
-  conflictResolution: number;
-  keyStrengths: string[];
-  areasForGrowth: string[];
-  recentTrends: string;
-  actionableInsights: string[];
-  messageCount: number;
-  conflictRate?: number;
-  fallbackAnalysis?: boolean;
+import React, { useState } from "react";
+import PageBreadcrumb from "@/components/common/PageBreadCrumb";
+import ComponentCard from "@/components/common/ComponentCard";
+import { Badge } from "@/components/ui/badge";
+import { PaperPlaneIcon, ShootingStarIcon, ChatIcon, ArrowUpIcon } from "@/icons";
+interface InsightResponse {
+  success: boolean;
+  query: string;
+  insights: string;
+  context_count: number;
+  debug?: {
+    vectorized_chunks: number;
+    search_time_ms: number;
+    top_matches?: unknown[];
+  };
 }
 
-export default function InsightsPage() {
-  const [insights, setInsights] = useState<InsightsData | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [timeRange, setTimeRange] = useState('30d');
-  const [analysisType, setAnalysisType] = useState('overview');
+interface ChatMessage {
+  id: string;
+  type: 'user' | 'assistant';
+  content: string;
+  timestamp: Date;
+  loading?: boolean;
+}
 
-  const generateInsights = async () => {
-    setLoading(true);
-    setError(null);
-    
+const InsightsPage = () => {
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [inputValue, setInputValue] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+
+  const suggestedQueries = [
+    {
+      text: "How have our communication patterns changed over time?",
+      icon: <ChatIcon className="w-4 h-4" />,
+      category: "Communication"
+    },
+    {
+      text: "What are the signs of conflict in our relationship?",
+      icon: <ArrowUpIcon className="w-4 h-4" />,
+      category: "Conflict"
+    },
+    {
+      text: "How do we express affection and intimacy?",
+      icon: <ShootingStarIcon className="w-4 h-4" />,
+      category: "Intimacy"
+    }
+  ];
+
+  const handleSubmit = async (query: string) => {
+    if (!query.trim()) return;
+
+    const userMessage: ChatMessage = {
+      id: `user-${Date.now()}`,
+      type: 'user',
+      content: query,
+      timestamp: new Date()
+    };
+
+    const loadingMessage: ChatMessage = {
+      id: `assistant-${Date.now()}`,
+      type: 'assistant',
+      content: "Analyzing your relationship data...",
+      timestamp: new Date(),
+      loading: true
+    };
+
+    setMessages(prev => [...prev, userMessage, loadingMessage]);
+    setInputValue("");
+    setIsLoading(true);
+
     try {
-      const response = await fetch('/api/insights/analyze', {
+      const response = await fetch('/api/insights', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ timeRange, analysisType })
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          query,
+          top_k: 10,
+          filters: {}
+        }),
       });
 
-      if (!response.ok) {
-        throw new Error(`Analysis failed: ${response.status}`);
-      }
+      const data: InsightResponse = await response.json();
 
-      const data = await response.json() as any;
-      
-      if (data.error) {
-        throw new Error(data.error);
-      }
+      if (data.success) {
+        const assistantMessage: ChatMessage = {
+          id: `assistant-${Date.now()}`,
+          type: 'assistant',
+          content: data.insights,
+          timestamp: new Date()
+        };
 
-      setInsights(data.insights);
-      
-    } catch (err) {
-      console.error('Failed to generate insights:', err);
-      setError(err instanceof Error ? err.message : 'Failed to generate insights');
+        setMessages(prev => prev.slice(0, -1).concat([assistantMessage]));
+      } else {
+        throw new Error('Failed to generate insights');
+      }
+    } catch {
+      const errorMessage: ChatMessage = {
+        id: `error-${Date.now()}`,
+        type: 'assistant',
+        content: "I'm sorry, I encountered an error generating insights. Please try again.",
+        timestamp: new Date()
+      };
+
+      setMessages(prev => prev.slice(0, -1).concat([errorMessage]));
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   };
 
-  useEffect(() => {
-    generateInsights();
-  }, []);
-
-  const getHealthColor = (score: number) => {
-    if (score >= 8) return 'text-green-600';
-    if (score >= 6) return 'text-yellow-600';
-    return 'text-red-600';
+  const handleInputSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    handleSubmit(inputValue);
   };
 
-  const getHealthBgColor = (score: number) => {
-    if (score >= 8) return 'bg-green-100';
-    if (score >= 6) return 'bg-yellow-100';
-    return 'bg-red-100';
+  const formatMessageContent = (content: string) => {
+    return content.split('\n').map((line, index) => {
+      if (line.startsWith('## ')) {
+        return <h3 key={index} className="text-lg font-semibold text-gray-900 dark:text-gray-100 mt-4 mb-2">{line.replace('## ', '')}</h3>;
+      }
+      if (line.startsWith('**') && line.endsWith('**')) {
+        return <h4 key={index} className="font-medium text-gray-800 dark:text-gray-200 mt-3 mb-1">{line.replace(/\*\*/g, '')}</h4>;
+      }
+      if (line.startsWith('- ')) {
+        return <li key={index} className="ml-4 text-gray-700 dark:text-gray-300 mb-1">{line.replace('- ', '')}</li>;
+      }
+      if (line.match(/^\d+\./)) {
+        return <li key={index} className="ml-4 text-gray-700 dark:text-gray-300 mb-1">{line}</li>;
+      }
+      if (line.trim() === '') {
+        return <br key={index} />;
+      }
+      return <p key={index} className="text-gray-700 dark:text-gray-300 mb-2">{line}</p>;
+    });
   };
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
-      {/* Header */}
-      <div className="text-center mb-8">
-        <h1 className="text-4xl font-bold text-gray-900 mb-2">
-          <Brain className="inline mr-2 h-8 w-8" />
-          Relationship Insights
-        </h1>
-        <p className="text-gray-600">
-          GPT-4 powered analysis of your communication patterns and emotional dynamics
-        </p>
-      </div>
-
-      {/* Controls */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Analysis Settings</CardTitle>
-          <CardDescription>
-            Generate insights based on different time periods and analysis types
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex gap-4">
-            <div>
-              <label className="block text-sm font-medium mb-2">Time Range</label>
-              <select 
-                value={timeRange} 
-                onChange={(e) => setTimeRange(e.target.value)}
-                className="px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="7d">Last 7 days</option>
-                <option value="30d">Last 30 days</option>
-                <option value="90d">Last 90 days</option>
-              </select>
+    <div className="space-y-6">
+      <PageBreadcrumb pageTitle="Relationship Insights" />
+      
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Chat Interface */}
+        <div className="lg:col-span-2">
+          <div className="h-[700px] flex flex-col rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]">
+            <div className="border-b border-gray-100 dark:border-gray-800 p-6">
+              <h3 className="flex items-center gap-2 text-base font-medium text-gray-800 dark:text-white/90">
+                <ShootingStarIcon className="w-5 h-5 text-blue-500" />
+                AI Relationship Analyst
+              </h3>
+              <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                Ask questions about your relationship patterns and get insights based on your message history.
+              </p>
             </div>
             
-            <div>
-              <label className="block text-sm font-medium mb-2">Analysis Type</label>
-              <select 
-                value={analysisType} 
-                onChange={(e) => setAnalysisType(e.target.value)}
-                className="px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="overview">Relationship Overview</option>
-                <option value="emotional_patterns">Emotional Patterns</option>
-                <option value="conflict_analysis">Conflict Analysis</option>
-              </select>
-            </div>
-          </div>
-          
-          <Button onClick={generateInsights} disabled={loading}>
-            {loading ? 'Analyzing...' : 'Generate New Insights'}
-          </Button>
-        </CardContent>
-      </Card>
-
-      {/* Error Display */}
-      {error && (
-        <Card className="border-red-200 bg-red-50">
-          <CardContent className="p-6">
-            <div className="flex items-center text-red-700">
-              <AlertTriangle className="mr-2 h-5 w-5" />
-              <span className="font-semibold">Analysis Error</span>
-            </div>
-            <p className="text-red-600 mt-2">{error}</p>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Loading State */}
-      {loading && (
-        <Card>
-          <CardContent className="p-8 text-center">
-            <Brain className="mx-auto h-12 w-12 text-blue-500 animate-pulse mb-4" />
-            <p className="text-gray-600">Analyzing your relationship patterns...</p>
-            <p className="text-sm text-gray-500 mt-2">This may take up to 30 seconds</p>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Insights Display */}
-      {insights && !loading && (
-        <div className="space-y-6">
-          {/* Relationship Health Scores */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <Card className={getHealthBgColor(insights.relationshipHealth || 0)}>
-              <CardContent className="p-6 text-center">
-                <Heart className={`mx-auto h-8 w-8 mb-2 ${getHealthColor(insights.relationshipHealth || 0)}`} />
-                <h3 className="text-sm font-medium text-gray-600">Relationship Health</h3>
-                <p className={`text-3xl font-bold ${getHealthColor(insights.relationshipHealth || 0)}`}>
-                  {(insights.relationshipHealth || 0).toFixed(1)}/10
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card className={getHealthBgColor(insights.communicationQuality || 0)}>
-              <CardContent className="p-6 text-center">
-                <TrendingUp className={`mx-auto h-8 w-8 mb-2 ${getHealthColor(insights.communicationQuality || 0)}`} />
-                <h3 className="text-sm font-medium text-gray-600">Communication Quality</h3>
-                <p className={`text-3xl font-bold ${getHealthColor(insights.communicationQuality || 0)}`}>
-                  {(insights.communicationQuality || 0).toFixed(1)}/10
-                </p>
-              </CardContent>
-            </Card>
-
-            {insights.emotionalIntimacy && (
-              <Card className={getHealthBgColor(insights.emotionalIntimacy)}>
-                <CardContent className="p-6 text-center">
-                  <Heart className={`mx-auto h-8 w-8 mb-2 ${getHealthColor(insights.emotionalIntimacy)}`} />
-                  <h3 className="text-sm font-medium text-gray-600">Emotional Intimacy</h3>
-                  <p className={`text-3xl font-bold ${getHealthColor(insights.emotionalIntimacy)}`}>
-                    {insights.emotionalIntimacy.toFixed(1)}/10
-                  </p>
-                </CardContent>
-              </Card>
-            )}
-
-            {insights.conflictResolution && (
-              <Card className={getHealthBgColor(insights.conflictResolution)}>
-                <CardContent className="p-6 text-center">
-                  <Lightbulb className={`mx-auto h-8 w-8 mb-2 ${getHealthColor(insights.conflictResolution)}`} />
-                  <h3 className="text-sm font-medium text-gray-600">Conflict Resolution</h3>
-                  <p className={`text-3xl font-bold ${getHealthColor(insights.conflictResolution)}`}>
-                    {insights.conflictResolution.toFixed(1)}/10
-                  </p>
-                </CardContent>
-              </Card>
-            )}
-          </div>
-
-          {/* Strengths and Growth Areas */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-green-700">💪 Key Strengths</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2">
-                  {insights.keyStrengths?.map((strength, index) => (
-                    <Badge key={index} variant="secondary" className="bg-green-100 text-green-800">
-                      {strength}
-                    </Badge>
-                  )) || (
-                    <p className="text-gray-500">No specific strengths identified in this analysis.</p>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-orange-700">🎯 Areas for Growth</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2">
-                  {insights.areasForGrowth?.map((area, index) => (
-                    <Badge key={index} variant="secondary" className="bg-orange-100 text-orange-800">
-                      {area}
-                    </Badge>
-                  )) || (
-                    <p className="text-gray-500">No specific growth areas identified in this analysis.</p>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Recent Trends */}
-          {insights.recentTrends && (
-            <Card>
-              <CardHeader>
-                <CardTitle>📈 Recent Trends</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-gray-700">{insights.recentTrends}</p>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Actionable Insights */}
-          <Card>
-            <CardHeader>
-              <CardTitle>💡 Actionable Insights</CardTitle>
-              <CardDescription>
-                Specific recommendations based on your communication patterns
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                {insights.actionableInsights?.map((insight, index) => (
-                  <div key={index} className="flex items-start space-x-2">
-                    <Lightbulb className="h-5 w-5 text-blue-500 mt-0.5 flex-shrink-0" />
-                    <p className="text-gray-700">{insight}</p>
+            <div className="flex-1 flex flex-col">
+              {/* Messages Area */}
+              <div className="flex-1 overflow-y-auto p-4 space-y-4">
+                {messages.length === 0 ? (
+                  <div className="text-center py-12">
+                    <ShootingStarIcon className="w-12 h-12 text-blue-500 mx-auto mb-4" />
+                    <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">
+                      Start Your Relationship Analysis
+                    </h3>
+                    <p className="text-gray-600 dark:text-gray-400 mb-6">
+                      Ask questions about your communication patterns, conflicts, intimacy, or any relationship topic.
+                    </p>
                   </div>
-                )) || (
-                  <p className="text-gray-500">No specific insights available for this analysis.</p>
+                ) : (
+                  messages.map((message) => (
+                    <div
+                      key={message.id}
+                      className={`flex ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}
+                    >
+                      <div
+                        className={`max-w-[80%] p-4 rounded-lg ${
+                          message.type === 'user'
+                            ? 'bg-blue-500 text-white'
+                            : 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100'
+                        }`}
+                      >
+                        {message.loading ? (
+                          <div className="flex items-center space-x-2">
+                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current"></div>
+                            <span>{message.content}</span>
+                          </div>
+                        ) : message.type === 'assistant' ? (
+                          <div className="prose prose-sm max-w-none dark:prose-invert">
+                            {formatMessageContent(message.content)}
+                          </div>
+                        ) : (
+                          <p>{message.content}</p>
+                        )}
+                        <div className="text-xs opacity-70 mt-2">
+                          {message.timestamp.toLocaleTimeString()}
+                        </div>
+                      </div>
+                    </div>
+                  ))
                 )}
               </div>
-            </CardContent>
-          </Card>
-
-          {/* Analysis Metadata */}
-          <Card className="border-gray-200 bg-gray-50">
-            <CardContent className="p-4">
-              <div className="text-xs text-gray-500 space-y-1">
-                <p>Analysis based on {insights.messageCount} messages from the selected time period</p>
-                {insights.conflictRate && (
-                  <p>Conflict rate: {(insights.conflictRate * 100).toFixed(1)}%</p>
-                )}
-                {insights.fallbackAnalysis && (
-                  <p className="text-orange-600">
-                    ⚠️ Using pattern-based analysis (AI analysis unavailable)
-                  </p>
-                )}
+              
+              {/* Input Area */}
+              <div className="border-t border-gray-100 dark:border-gray-800 p-4">
+                <form onSubmit={handleInputSubmit} className="flex gap-2">
+                  <input
+                    value={inputValue}
+                    onChange={(e) => setInputValue(e.target.value)}
+                    placeholder="Ask about your relationship patterns..."
+                    disabled={isLoading}
+                    className="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:opacity-50 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+                  />
+                  <button 
+                    type="submit" 
+                    disabled={isLoading || !inputValue.trim()}
+                    className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50"
+                  >
+                    <PaperPlaneIcon className="w-4 h-4" />
+                  </button>
+                </form>
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         </div>
-      )}
+
+        {/* Suggestions Panel */}
+        <div className="space-y-6">
+          <ComponentCard title="Suggested Questions">
+            <div className="space-y-3">
+              {suggestedQueries.map((query, index) => (
+                <button
+                  key={index}
+                  onClick={() => handleSubmit(query.text)}
+                  disabled={isLoading}
+                  className="w-full p-3 text-left rounded-lg border border-gray-200 dark:border-gray-700 hover:border-blue-500 dark:hover:border-blue-400 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors disabled:opacity-50"
+                >
+                  <div className="flex items-start gap-3">
+                    <div className="text-blue-500 mt-0.5">
+                      {query.icon}
+                    </div>
+                    <div>
+                      <div className="mb-2">
+                        <Badge variant="light" color="light" size="sm">
+                          {query.category}
+                        </Badge>
+                      </div>
+                      <p className="text-sm text-gray-700 dark:text-gray-300">
+                        {query.text}
+                      </p>
+                    </div>
+                  </div>
+                </button>
+              ))}
+            </div>
+          </ComponentCard>
+
+          <ComponentCard title="Analysis Stats">
+            <div className="space-y-3 text-sm">
+              <div className="flex justify-between">
+                <span className="text-gray-600 dark:text-gray-400">Vectorized Chunks</span>
+                <span className="font-medium">194</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-600 dark:text-gray-400">Total Messages</span>
+                <span className="font-medium">30,250</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-600 dark:text-gray-400">Analysis Period</span>
+                <span className="font-medium">2.5 years</span>
+              </div>
+            </div>
+          </ComponentCard>
+        </div>
+      </div>
     </div>
   );
-}
+};
+
+export default InsightsPage;

@@ -33,7 +33,7 @@ export function OffCanvas({
       {/* Off-canvas panel */}
       <div
         className={cn(
-          "fixed top-0 right-0 h-full w-96 bg-white shadow-2xl transform transition-transform duration-300 ease-in-out z-50 border-l border-gray-200",
+          "fixed top-0 right-0 h-full w-[480px] bg-white shadow-2xl transform transition-transform duration-300 ease-in-out z-50 border-l border-gray-200 flex flex-col",
           isOpen ? "translate-x-0" : "translate-x-full",
           className
         )}
@@ -55,7 +55,7 @@ export function OffCanvas({
         </div>
         
         {/* Content */}
-        <div className="flex-1 overflow-y-auto p-6">
+        <div className="flex-1 overflow-y-auto p-6 h-0">
           {children}
         </div>
       </div>

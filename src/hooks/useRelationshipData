@@ -1,0 +1,247 @@
+// hooks/useRelationshipData.ts
+
+import { useState, useEffect, useCallback } from 'react';
+import { 
+  CalendarData, 
+  DailyContext, 
+  RelationshipEvent, 
+  RelationshipDay,
+  ApiResponse,
+  UseRelationshipDataReturn 
+} from '@/types/relationship';
+
+const API_BASE_URL = process.env.NEXT_PUBLIC_WORKER_URL || 'https://unmask-contextual-intelligence.your-subdomain.workers.dev';
+
+export function useRelationshipData(startDate?: Date, endDate?: Date): UseRelationshipDataReturn {
+  const [data, setData] = useState<CalendarData>({});
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchData = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      // Fetch dashboard data (includes recent metrics and patterns)
+      const dashboardResponse = await fetch(`${API_BASE_URL}/api/dashboard`);
+      if (!dashboardResponse.ok) {
+        throw new Error('Failed to fetch dashboard data');
+      }
+      const dashboardData = await dashboardResponse.json();
+
+      // Fetch daily contexts for date range
+      const contexts = await fetchDailyContexts(startDate, endDate);
+      
+      // Fetch events for date range  
+      const events = await fetchEvents(startDate, endDate);
+
+      // Combine data into calendar format
+      const calendarData: CalendarData = {};
+      
+      // Process contexts
+      contexts.forEach(context => {
+        if (!calendarData[context.date]) {
+          calendarData[context.date] = {
+            date: context.date,
+            events: [],
+          };
+        }
+        calendarData[context.date].context = context;
+      });
+
+      // Process events
+      events.forEach(event => {
+        if (!calendarData[event.date]) {
+          calendarData[event.date] = {
+            date: event.date,
+            events: [],
+          };
+        }
+        calendarData[event.date].events.push(event);
+      });
+
+      // Add metrics from dashboard data
+      dashboardData.metrics?.forEach((metric: any) => {
+        if (calendarData[metric.date]) {
+          calendarData[metric.date].metrics = metric;
+        }
+      });
+
+      setData(calendarData);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to fetch data');
+      console.error('Error fetching relationship data:', err);
+    } finally {
+      setLoading(false);
+    }
+  }, [startDate, endDate]);
+
+  const fetchDailyContexts = async (start?: Date, end?: Date): Promise<DailyContext[]> => {
+    // For now, return mock data. In production, this would call your API
+    // const response = await fetch(`${API_BASE_URL}/api/daily-context?start=${start}&end=${end}`);
+    // return response.json();
+    
+    return generateMockContexts(start, end);
+  };
+
+  const fetchEvents = async (start?: Date, end?: Date): Promise<RelationshipEvent[]> => {
+    // Mock events for now
+    return generateMockEvents(start, end);
+  };
+
+  const updateDay = useCallback(async (date: string, context: DailyContext) => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/daily-context`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(context),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to update daily context');
+      }
+
+      const result: ApiResponse<DailyContext> = await response.json();
+
+      // Update local data
+      setData(prev => ({
+        ...prev,
+        [date]: {
+          ...prev[date],
+          date,
+          context: result.data || context,
+          events: prev[date]?.events || [],
+        }
+      }));
+
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to update day');
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const addEvent = useCallback(async (event: RelationshipEvent) => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/events`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(event),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to add event');
+      }
+
+      const result: ApiResponse<RelationshipEvent> = await response.json();
+
+      // Update local data
+      setData(prev => ({
+        ...prev,
+        [event.date]: {
+          ...prev[event.date],
+          date: event.date,
+          context: prev[event.date]?.context,
+          events: [...(prev[event.date]?.events || []), result.data || event],
+        }
+      }));
+
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to add event');
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  return {
+    data,
+    loading,
+    error,
+    refetch: fetchData,
+    updateDay,
+    addEvent,
+  };
+}
+
+// Mock data generators for development
+function generateMockContexts(start?: Date, end?: Date): DailyContext[] {
+  const contexts: DailyContext[] = [];
+  const today = new Date();
+  const startDate = start || new Date(today.getFullYear(), today.getMonth(), 1);
+  const endDate = end || new Date(today.getFullYear(), today.getMonth() + 1, 0);
+
+  for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
+    const dateKey = d.toISOString().split('T')[0];
+    
+    // Generate realistic mock data
+    const isWeekend = d.getDay() === 0 || d.getDay() === 6;
+    const physical_status = Math.random() > 0.7 ? 'apart' : (Math.random() > 0.8 ? 'partial' : 'together');
+    
+    contexts.push({
+      date: dateKey,
+      physical_status,
+      relationship_satisfaction: Math.floor(Math.random() * 4) + 7, // 7-10
+      user_energy_level: Math.floor(Math.random() * 4) + 6, // 6-9
+      quality_time_rating: isWeekend ? Math.floor(Math.random() * 3) + 8 : Math.floor(Math.random() * 4) + 6,
+      external_stressors: Math.random() > 0.7 ? ['work deadlines'] : [],
+      hours_together: physical_status === 'partial' ? Math.random() * 8 + 2 : undefined,
+    });
+  }
+
+  return contexts;
+}
+
+function generateMockEvents(start?: Date, end?: Date): RelationshipEvent[] {
+  const events: RelationshipEvent[] = [];
+  const eventTypes: RelationshipEvent['event_type'][] = ['celebration', 'conflict', 'breakthrough', 'milestone'];
+  
+  // Generate 3-5 random events in the date range
+  for (let i = 0; i < Math.floor(Math.random() * 3) + 3; i++) {
+    const randomDate = new Date(start || new Date());
+    randomDate.setDate(randomDate.getDate() + Math.floor(Math.random() * 30));
+    
+    const eventType = eventTypes[Math.floor(Math.random() * eventTypes.length)];
+    
+    events.push({
+      id: `event-${i}`,
+      date: randomDate.toISOString().split('T')[0],
+      event_type: eventType,
+      title: getEventTitle(eventType),
+      description: 'Auto-generated mock event for development',
+      severity: eventType === 'conflict' ? Math.floor(Math.random() * 5) + 3 : undefined,
+      positivity: eventType !== 'conflict' ? Math.floor(Math.random() * 3) + 8 : undefined,
+    });
+  }
+
+  return events;
+}
+
+function getEventTitle(eventType: RelationshipEvent['event_type']): string {
+  const titles = {
+    celebration: 'Anniversary celebration',
+    conflict: 'Communication misunderstanding',
+    breakthrough: 'Deep conversation about future',
+    milestone: 'Relationship milestone',
+    trigger: 'Stress response',
+    reconnection: 'Reconnected after distance',
+    distance_moment: 'Feeling disconnected',
+  };
+  
+  return titles[eventType];
+}

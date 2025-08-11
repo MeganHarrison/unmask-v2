@@ -1,0 +1,44 @@
+name = "unmask-data-ingestion"
+main = "index.ts"
+compatibility_date = "2024-01-01"
+
+[env.production]
+vars = { ENVIRONMENT = "production", OPENAI_API_KEY = "" }
+
+[[env.production.kv_namespaces]]
+binding = "INGESTION_KV"
+id = "2515c76237c04540b8e416660cac4bfb"
+
+[[env.production.d1_databases]]
+binding = "USER_DATA_D1"
+database_name = "mkh-personal"
+database_id = "f450193b-9536-4ada-8271-2a8cd917069e"
+
+[[env.production.vectorize]]
+binding = "VECTORIZE_INDEX"
+index_name = "relationship-insights-1536"
+
+[[env.production.r2_buckets]]
+binding = "FILE_STORAGE_R2"
+bucket_name = "personal"
+
+[env.development]
+vars = { ENVIRONMENT = "development" }
+
+[[env.development.kv_namespaces]]
+binding = "INGESTION_KV"
+id = "2515c76237c04540b8e416660cac4bfb"
+
+[[env.development.d1_databases]]
+binding = "USER_DATA_D1"
+database_name = "mkh-personal"
+database_id = "f450193b-9536-4ada-8271-2a8cd917069e"
+
+[[env.development.vectorize]]
+binding = "VECTORIZE_INDEX"
+index_name = "relationship-insights-1536"
+
+[[env.development.r2_buckets]]
+binding = "FILE_STORAGE_R2"
+bucket_name = "personal"
+      

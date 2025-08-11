@@ -125,6 +125,37 @@ INSERT INTO conversation_tags (conversation_chunk_id, tag_name, tag_color) VALUE
 (2, 'resolved', '#10B981'),
 (4, 'milestone', '#8B5CF6'),
 (4, 'emotional', '#EC4899');
+
+-- Create relationship_events table for tracking significant relationship milestones and events
+CREATE TABLE IF NOT EXISTS relationship_events (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  event_date DATE NOT NULL,
+  event_time TIME,
+  event_type TEXT NOT NULL,
+  title TEXT NOT NULL,
+  description TEXT,
+  notes TEXT,
+  
+  category TEXT DEFAULT 'general',
+  sentiment TEXT DEFAULT 'neutral',
+  significance INTEGER DEFAULT 3 CHECK(significance >= 1 AND significance <= 5),
+  
+  initiated_by TEXT,
+  
+  location TEXT,
+  mood_before TEXT,
+  mood_after TEXT,
+  
+  relationship_id INTEGER DEFAULT 1,
+  
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_event_date ON relationship_events(event_date);
+CREATE INDEX IF NOT EXISTS idx_event_type ON relationship_events(event_type);
+CREATE INDEX IF NOT EXISTS idx_category ON relationship_events(category);
+CREATE INDEX IF NOT EXISTS idx_created_at ON relationship_events(created_at);
 `;
 
     // Split the SQL content by semicolons to execute each statement separately

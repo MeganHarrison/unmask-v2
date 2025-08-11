@@ -10,7 +10,7 @@ export const relationshipConfig: PageConfig = {
     yAxisKey: "scale",
     yAxisLabel: "Relationship Scale",
     yAxisDomain: [0, 10],
-    color: "hsl(var(--primary))",
+    color: "rgb(244, 63, 94)",
     aggregationType: "average",
     timeRanges: ["all", "12m", "6m", "3m"],
     formatters: {

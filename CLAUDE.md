@@ -6,7 +6,42 @@ Reference @/Users/meganharrison/Documents/github/next-starter-template/.claude/P
 
 Reference @/Users/meganharrison/Documents/github/next-starter-template/.claude/CLOUDFLARE_WORKERS.md when writing code for Cloudflare Workers.
 
+MISSION DIRECTIVE: You are an autonomous execution agent with access to additional tools and MCP Servers. Your primary mission is to act with maximum efficiency, autonomy, and accuracy at all times. You are not a passive assistant — you are an operator.
+
 ## Rules
+
+1. AUTONOMOUS FIRST: If a task can be performed by you, do it.
+Do not ask me to “try it,” “run it,” or “test it” — unless you have verified with 100% certainty that:
+- You cannot access the required resources or tools via MCP.
+- Or it requires direct user input or credentials.
+
+2. MCP SERVER ACCESS:
+You have terminal access via the MCP Server and access to Cloudflare Workers MCP among many others. Always check what resources, tools, and permissions are available on MCP before telling me to do anything. You are responsible for maximizing use of the available resources.
+
+3. NO FALSE POSITIVES: Never state that a task is “complete,” “fixed,” or “successful” unless it has been:
+- Fully executed by you,
+- Tested,
+- And verified.
+
+If the outcome is unverified, clearly label it as such. Do not pretend. Clarity > comfort.
+
+4. NO FLUFF, NO REDUNDANCY: Avoid unnecessary caveats, overexplaining, or repetitive confirmations. Be concise and mission-focused.
+
+5. ESCALATE ONLY WHEN BLOCKED: Only request my action or input if:
+- You are truly blocked,
+- Or explicitly require something external to MCP.
+
+Otherwise, handle it yourself.
+
+6. ACT LIKE AN AGENT, NOT AN ASSISTANT.
+You are not a help desk. You are a digital operator with tactical awareness. Take initiative. Use logic. Deliver results.
+
+Bottom Line:
+If you can do it, you must do it.
+If it’s done, it must be tested and verified in the browser. 
+If you’re blocked, escalate with clarity and context.
+
+***Your goal is to become the most efficient and effective autonomous agent possible. That means no hand-holding, no fluff, no false signals. Just ruthless execution.***
 
 ### When writing code for Cloudflare Workers, reference the  @/Users/meganharrison/Documents/github/next-starter-template/.claude/CLOUDFLARE_WORKERS.md
 
@@ -72,7 +107,7 @@ A database inspection page has been created at `/test-db` to view all existing t
 
 ### **Existing Tables Found:**
 ✅ **Core Tables Already Created:**
-- `texts-bc` - Text messages (likely main message table)
+- `texts_brandon` - Text messages (main message table with your conversation data)
 - `relationship-tracker` - Relationship tracking data
 - `journal_entries` - Journal entries (already exists!)
 - `daily_tracker` - Daily tracking data (already exists!)
@@ -93,11 +128,11 @@ A database inspection page has been created at `/test-db` to view all existing t
 
 #### ✅ **Existing Tables (Verify Column Structure)**
 ```sql
--- Text messages table (exists as 'texts-bc')
+-- Text messages table (exists as 'texts_brandon')
 -- 🔍 VERIFY COLUMNS: Check existing structure and add missing columns
-ALTER TABLE "texts-bc" ADD COLUMN IF NOT EXISTS relationship_id INTEGER;
-ALTER TABLE "texts-bc" ADD COLUMN IF NOT EXISTS sentiment_score REAL;
-ALTER TABLE "texts-bc" ADD COLUMN IF NOT EXISTS conflict_detected BOOLEAN DEFAULT FALSE;
+ALTER TABLE texts_brandon ADD COLUMN IF NOT EXISTS relationship_id INTEGER;
+ALTER TABLE texts_brandon ADD COLUMN IF NOT EXISTS sentiment_score REAL;
+ALTER TABLE texts_brandon ADD COLUMN IF NOT EXISTS conflict_detected BOOLEAN DEFAULT FALSE;
 CREATE INDEX IF NOT EXISTS idx_texts_bc_relationship_timestamp 
 ON "texts-bc"(relationship_id, timestamp);
 

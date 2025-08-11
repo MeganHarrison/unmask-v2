@@ -30,8 +30,18 @@
     {
       "binding": "VECTORIZE_INDEX",
       "index_name": "relationship-insights-1536"
+    },
+    {
+      "binding": "RELATIONSHIP_VECTORS",
+      "index_name": "unmask-relationship-insights"
     }
   ],
+  "ai": {
+    "binding": "AI"
+  },
+  
+  "account_id": "d1416265449d2a0bae41c45c791270ec",
+
   "vars": {
     // Add OPENAI_API_KEY to environment variables or use wrangler secret put OPENAI_API_KEY
   }

@@ -144,6 +144,7 @@ export function UniversalAreaChart({
           </Select>
         </CardAction>
       </CardHeader>
+      
       <CardContent className="px-2 pt-4 sm:px-6 sm:pt-6">
         {loading ? (
           <div className="flex h-[250px] items-center justify-center">

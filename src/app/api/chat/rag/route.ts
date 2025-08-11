@@ -15,9 +15,12 @@ interface VectorizeMatch {
   }
 }
 
-interface QueryRequest {
-  query: string
-  topK?: number
+interface ChatRequest {
+  message: string
+  conversationHistory?: Array<{
+    role: string
+    content: string
+  }>
 }
 
 export async function POST(request: NextRequest) {
@@ -28,19 +31,24 @@ export async function POST(request: NextRequest) {
     if (!env?.VECTORIZE_INDEX) {
       console.error('VECTORIZE_INDEX not configured')
       return NextResponse.json({
-        success: false,
-        error: 'Vector search not configured'
-      }, { status: 500 })
+        response: "I'm having trouble connecting to the knowledge base. Please try again later.",
+        timestamp: new Date().toISOString(),
+        agentType: 'error',
+        confidence: 0.1
+      })
     }
 
-    const body: QueryRequest = await request.json()
-    const { query, topK = 10 } = body
+    const body: ChatRequest = await request.json()
+    const { message, conversationHistory = [] } = body
+    const query = message // Map message to query for compatibility
 
     if (!query || typeof query !== 'string') {
       return NextResponse.json({
-        success: false,
-        error: 'Query is required'
-      }, { status: 400 })
+        response: "I didn't receive your message. Could you please try again?",
+        timestamp: new Date().toISOString(),
+        agentType: 'error',
+        confidence: 0.1
+      })
     }
 
     // Generate embedding for the query
@@ -76,7 +84,7 @@ export async function POST(request: NextRequest) {
     // Query Vectorize index
     const vectorIndex = env.VECTORIZE_INDEX as any // Cloudflare Vectorize binding
     const matches = await vectorIndex.query(queryVector, { 
-      topK,
+      topK: 5, // Return top 5 most relevant matches
       returnMetadata: true,
       returnValues: false
     })
@@ -176,18 +184,44 @@ Remember: You're analyzing REAL conversations between the user and their partner
       response = "I couldn't find specific information related to your query in the relationship data. Could you try rephrasing your question or asking about something else?"
     }
 
+    // Determine agent type based on query content
+    let agentType = 'memory';
+    let confidence = 0.85;
+    const lowerQuery = query.toLowerCase();
+    
+    if (lowerQuery.includes('advice') || lowerQuery.includes('should') || lowerQuery.includes('help')) {
+      agentType = 'coaching';
+    } else if (lowerQuery.includes('pattern') || lowerQuery.includes('analyze') || lowerQuery.includes('trend')) {
+      agentType = 'insights';
+    }
+
+    // Generate next steps based on response
+    const nextSteps = [
+      "Ask me to analyze specific time periods",
+      "Request insights about communication patterns",
+      "Get personalized relationship advice"
+    ];
+
     return NextResponse.json({
-      success: true,
       response,
-      sources: sources.slice(0, 3) // Return top 3 sources for transparency
+      timestamp: new Date().toISOString(),
+      agentType,
+      confidence,
+      nextSteps,
+      relatedInsights: sources.slice(0, 3).map((s: any) => s.text.substring(0, 100) + '...'),
+      coachingStyle: 'supportive',
+      interventionType: 'exploratory'
     })
 
   } catch (error) {
     console.error('RAG error:', error)
     return NextResponse.json({
-      success: false,
-      error: error instanceof Error ? error.message : 'Failed to process query'
-    }, { status: 500 })
+      response: "I apologize, but I'm having trouble processing your request right now. Please try again in a moment.",
+      timestamp: new Date().toISOString(),
+      agentType: 'error',
+      confidence: 0.1,
+      nextSteps: ["Try rephrasing your question", "Ask a more specific question", "Check back in a few minutes"]
+    })
   }
 }
 

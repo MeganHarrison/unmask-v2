@@ -1,0 +1,38 @@
+{
+  "name": "unmask-vectorize",
+  "main": "src/worker.ts",
+  "compatibility_date": "2024-07-01",
+  "compatibility_flags": ["nodejs_compat"],
+
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "megan-personal",
+      "database_id": "f450193b-9536-4ada-8271-2a8cd917069e"
+    }
+  ],
+
+  "vectorize": [
+    {
+      "binding": "VECTORIZE_CONVERSATIONS",
+      "index_name": "unmask-conversations"
+    },
+    {
+      "binding": "VECTORIZE_RELATIONSHIPS",
+      "index_name": "unmask-relationship-vectors"
+    }
+  ],
+
+  "kv_namespaces": [
+    {
+      "binding": "CACHE",
+      "id": "66a3a8f628924105be51dec099268687",
+      "preview_id": "66a3a8f628924105be51dec099268687"
+    }
+  ],
+
+  "vars": {
+    "BATCH_SIZE": "3",
+    "MAX_CHUNK_SIZE": "12"
+  }
+}
