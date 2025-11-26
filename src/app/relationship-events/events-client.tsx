@@ -264,7 +264,7 @@ export default function EventsClient({
                     <tr key={event.id} className="hover:bg-slate-50/80">
                       <td className="px-5 py-3 whitespace-nowrap">
                         {imgSrc ? (
-                          <div className="h-12 w-12 overflow-hidden rounded-lg border border-slate-200 bg-slate-100">
+                          <div className="h-16 w-16 overflow-hidden rounded-lg border border-slate-200 bg-slate-100 shadow-sm">
                             {/* use native img to avoid domain config issues */}
                             <img
                               src={imgSrc}
@@ -274,7 +274,7 @@ export default function EventsClient({
                             />
                           </div>
                         ) : (
-                          <div className="h-12 w-12 rounded-lg border border-dashed border-slate-200 bg-slate-50 flex items-center justify-center text-xs text-slate-400">
+                          <div className="h-16 w-16 rounded-lg border border-dashed border-slate-200 bg-slate-50 flex items-center justify-center text-xs text-slate-400">
                             —
                           </div>
                         )}
