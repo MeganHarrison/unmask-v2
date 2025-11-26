@@ -69,12 +69,12 @@ import { Separator } from "@/components/ui/separator"
 
 interface TextMessage {
   id: number;
-  date_time: string;
-  sender: string;
-  message: string;
-  sentiment: string;
-  category: string;
-  tag: string;
+  date_time: string | null;
+  sender: string | null;
+  message: string | null;
+  notes: string | null;
+  category: string | null;
+  tag: string | null;
 }
 
 interface EditableCellProps {
@@ -286,7 +286,7 @@ const createColumns = (
     },
   },
   {
-    accessorKey: "sentiment",
+    accessorKey: "notes",
     header: ({ column }) => {
       return (
         <Button
@@ -294,7 +294,7 @@ const createColumns = (
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           className="text-gray-700 hover:text-gray-900 hover:bg-gray-100 p-0"
         >
-          Sentiment
+          Notes
           {column.getIsSorted() === "asc" ? (
             <IconSortAscending className="ml-1 h-4 w-4" />
           ) : column.getIsSorted() === "desc" ? (
@@ -304,20 +304,16 @@ const createColumns = (
       )
     },
     cell: ({ row }) => {
-      const sentiment = row.getValue("sentiment") as string;
+      const notes = row.getValue("notes") as string;
       const rowId = row.original.id;
       
       return (
         <EditableCell
-          value={sentiment}
-          onSave={(value) => onUpdateRow(rowId, 'sentiment', value)}
-          options={['positive', 'negative', 'neutral']}
-          type="select"
+          value={notes}
+          onSave={(value) => onUpdateRow(rowId, 'notes', value)}
+          type="text"
         />
       );
-    },
-    filterFn: (row, id, value) => {
-      return value.includes(row.getValue(id))
     },
   },
   {
@@ -402,6 +398,7 @@ interface TextsDataTableEditableProps {
   onPageChange?: (page: number) => void;
   onPageSizeChange?: (pageSize: number) => void;
   onUpdateRow?: (id: number, field: string, value: string) => Promise<void>;
+  onDeleteRow?: (id: number) => Promise<void>;
 }
 
 export function TextsDataTableEditable({ 
@@ -410,7 +407,8 @@ export function TextsDataTableEditable({
   pagination,
   onPageChange,
   onPageSizeChange,
-  onUpdateRow
+  onUpdateRow,
+  onDeleteRow
 }: TextsDataTableEditableProps) {
   const [localData, setLocalData] = React.useState(data);
   const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({})
@@ -422,7 +420,6 @@ export function TextsDataTableEditable({
   // Advanced filter states
   const [dateRange, setDateRange] = React.useState<{ start: string; end: string }>({ start: "", end: "" })
   const [selectedYear, setSelectedYear] = React.useState<string>("all")
-  const [selectedSentiments, setSelectedSentiments] = React.useState<string[]>([])
   const [selectedCategories, setSelectedCategories] = React.useState<string[]>([])
   const [selectedTags, setSelectedTags] = React.useState<string[]>([])
   const [selectedSenders, setSelectedSenders] = React.useState<string[]>([])
@@ -451,27 +448,23 @@ export function TextsDataTableEditable({
   
   // Get unique values for filters
   const uniqueSenders = React.useMemo(() => 
-    Array.from(new Set(localData.map(item => item.sender))).sort(),
+    Array.from(new Set(localData.map(item => item.sender).filter(Boolean))).sort(),
     [localData]
   );
   
   const uniqueCategories = React.useMemo(() => 
-    Array.from(new Set(localData.map(item => item.category))).sort(),
+    Array.from(new Set(localData.map(item => item.category).filter(Boolean))).sort(),
     [localData]
   );
   
   const uniqueTags = React.useMemo(() => 
-    Array.from(new Set(localData.map(item => item.tag))).sort(),
+    Array.from(new Set(localData.map(item => item.tag).filter(Boolean))).sort(),
     [localData]
   );
 
   // Apply filters
   React.useEffect(() => {
     const filters: ColumnFiltersState = [];
-    
-    if (selectedSentiments.length > 0) {
-      filters.push({ id: "sentiment", value: selectedSentiments });
-    }
     
     if (selectedCategories.length > 0) {
       filters.push({ id: "category", value: selectedCategories });
@@ -486,13 +479,14 @@ export function TextsDataTableEditable({
     }
     
     setColumnFilters(filters);
-  }, [selectedSentiments, selectedCategories, selectedTags, selectedSenders]);
+  }, [selectedCategories, selectedTags, selectedSenders]);
 
   // Filter data by date range
   const filteredData = React.useMemo(() => {
     if (!dateRange.start && !dateRange.end && selectedYear === "all") return localData;
     
     return localData.filter(item => {
+      if (!item.date_time) return false;
       const itemDate = new Date(item.date_time);
       
       // Year filter
@@ -540,13 +534,13 @@ export function TextsDataTableEditable({
 
   // Export functions
   const exportToCSV = () => {
-    const headers = ["Date Time", "Sender", "Message", "Sentiment", "Category", "Tag"];
+    const headers = ["Date Time", "Sender", "Message", "Notes", "Category", "Tag"];
     const rows = table.getFilteredRowModel().rows.map(row => {
       return [
         row.getValue("date_time"),
         row.getValue("sender"),
         row.getValue("message"),
-        row.getValue("sentiment"),
+        row.getValue("notes"),
         row.getValue("category"),
         row.getValue("tag")
       ].map(value => {
@@ -567,7 +561,6 @@ export function TextsDataTableEditable({
     setGlobalFilter("");
     setDateRange({ start: "", end: "" });
     setSelectedYear("all");
-    setSelectedSentiments([]);
     setSelectedCategories([]);
     setSelectedTags([]);
     setSelectedSenders([]);
@@ -580,12 +573,11 @@ export function TextsDataTableEditable({
     if (globalFilter) count++;
     if (dateRange.start || dateRange.end) count++;
     if (selectedYear !== "all") count++;
-    if (selectedSentiments.length > 0) count++;
     if (selectedCategories.length > 0) count++;
     if (selectedTags.length > 0) count++;
     if (selectedSenders.length > 0) count++;
     return count;
-  }, [globalFilter, dateRange, selectedYear, selectedSentiments, selectedCategories, selectedTags, selectedSenders]);
+  }, [globalFilter, dateRange, selectedYear, selectedCategories, selectedTags, selectedSenders]);
 
 
   return (
@@ -667,7 +659,7 @@ export function TextsDataTableEditable({
                     </SelectTrigger>
                     <SelectContent className="bg-white border-gray-300">
                       <SelectItem value="all" className="text-gray-900">All Years</SelectItem>
-                      {Array.from(new Set(localData.map(item => new Date(item.date_time).getFullYear())))
+                      {Array.from(new Set(localData.filter(item => item.date_time).map(item => new Date(item.date_time as string).getFullYear())))
                         .sort((a, b) => b - a)
                         .map(year => (
                           <SelectItem key={year} value={year.toString()} className="text-gray-900">
@@ -701,35 +693,6 @@ export function TextsDataTableEditable({
                           className="text-sm text-gray-700 cursor-pointer"
                         >
                           {sender}
-                        </label>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-                
-                {/* Sentiment Filter */}
-                <div className="space-y-2">
-                  <Label className="text-gray-300">Sentiment</Label>
-                  <div className="space-y-2">
-                    {["positive", "negative", "neutral"].map(sentiment => (
-                      <div key={sentiment} className="flex items-center space-x-2">
-                        <Checkbox
-                          id={`sentiment-${sentiment}`}
-                          checked={selectedSentiments.includes(sentiment)}
-                          onCheckedChange={(checked) => {
-                            if (checked) {
-                              setSelectedSentiments([...selectedSentiments, sentiment]);
-                            } else {
-                              setSelectedSentiments(selectedSentiments.filter(s => s !== sentiment));
-                            }
-                          }}
-                          className="border-gray-600"
-                        />
-                        <label
-                          htmlFor={`sentiment-${sentiment}`}
-                          className="text-sm text-gray-700 cursor-pointer capitalize"
-                        >
-                          {sentiment}
                         </label>
                       </div>
                     ))}
@@ -838,7 +801,7 @@ export function TextsDataTableEditable({
           </Button>
           <Button
             variant="outline"
-            size="sm p-2"
+            size="sm"
             onClick={() => window.location.reload()}
             className="bg-white border-gray-300 text-gray-700 p-2 hover:bg-gray-50">
             <IconRefresh className="h-4 w-4 mr-1" />
@@ -883,19 +846,6 @@ export function TextsDataTableEditable({
                   onClick={() => setSelectedYear("all")}
                   className="ml-1 hover:text-gray-900"
                   aria-label="Clear year filter"
-                >
-                  <IconX className="h-3 w-3" />
-                </button>
-              </Badge>
-            )}
-            {selectedSentiments.length > 0 && (
-              <Badge className="bg-gray-200 text-gray-700 border-gray-300">
-                Sentiment: {selectedSentiments.join(", ")}
-                <button
-                  type="button"
-                  onClick={() => setSelectedSentiments([])}
-                  className="ml-1 hover:text-gray-900"
-                  aria-label="Clear sentiment filter"
                 >
                   <IconX className="h-3 w-3" />
                 </button>
