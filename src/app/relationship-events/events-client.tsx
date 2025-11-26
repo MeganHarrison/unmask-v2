@@ -71,6 +71,10 @@ export default function EventsClient({
   const [year, setYear] = useState<string>(activeYear || 'all')
   const [tag, setTag] = useState(initialFilters.tag || '')
   const [category, setCategory] = useState(initialFilters.category || '')
+  const [events, setEvents] = useState(initialEvents)
+  const [editingId, setEditingId] = useState<number | null>(null)
+  const [savingId, setSavingId] = useState<number | null>(null)
+  const [editData, setEditData] = useState<Partial<RelationshipEvent>>({})
 
   const handleSearch = (e?: React.FormEvent) => {
     e?.preventDefault()
@@ -99,6 +103,68 @@ export default function EventsClient({
       ...(category && { category }),
     })
     router.push(`/relationship-events?${params.toString()}`)
+  }
+
+  const startEdit = (event: RelationshipEvent) => {
+    setEditingId(event.id)
+    setEditData({
+      name: event.name || '',
+      location: event.location || '',
+      category: event.category || '',
+      tag: event.tag || '',
+      rating: event.rating ?? undefined,
+      notes: event.notes || '',
+      date: event.date || '',
+      end_date: event.end_date || '',
+      image_url: event.image_url || event.image_thumbnail_url || event.photo || '',
+    })
+  }
+
+  const cancelEdit = () => {
+    setEditingId(null)
+    setEditData({})
+  }
+
+  const saveEdit = async () => {
+    if (!editingId) return
+    setSavingId(editingId)
+    try {
+      const payload: Record<string, any> = { id: editingId }
+      if (editData.name !== undefined) payload.name = editData.name
+      if (editData.location !== undefined) payload.location = editData.location
+      if (editData.category !== undefined) payload.category = editData.category
+      if (editData.tag !== undefined) payload.tag = editData.tag
+      if (editData.rating !== undefined && editData.rating !== null) payload.rating = Number(editData.rating)
+      if (editData.notes !== undefined) payload.notes = editData.notes
+      if (editData.date !== undefined) payload.date = editData.date || null
+      if (editData.end_date !== undefined) payload.end_date = editData.end_date || null
+      if (editData.image_url !== undefined) payload.image_url = editData.image_url
+
+      const res = await fetch('/api/relationship-events-supabase', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      })
+
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}))
+        throw new Error(err.error || 'Failed to update event')
+      }
+
+      const json = await res.json()
+      if (!json?.data) throw new Error('No data returned')
+
+      setEvents((prev) =>
+        prev.map((ev) => (ev.id === editingId ? json.data : ev))
+      )
+      setEditingId(null)
+      setEditData({})
+    } catch (error) {
+      console.error('Update failed', error)
+      alert(error instanceof Error ? error.message : 'Failed to update event')
+    } finally {
+      setSavingId(null)
+    }
   }
 
   return (
@@ -255,11 +321,13 @@ export default function EventsClient({
                   <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Tag</th>
                   <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Rating</th>
                   <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Notes</th>
+                  <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 bg-white">
-                {initialEvents.map((event) => {
+                {events.map((event) => {
                   const imgSrc = event.image_thumbnail_url || event.image_url || event.photo || ''
+                  const isEditing = editingId === event.id
                   return (
                     <tr key={event.id} className="hover:bg-slate-50/80">
                       <td className="px-5 py-3 whitespace-nowrap">
@@ -280,33 +348,125 @@ export default function EventsClient({
                         )}
                       </td>
                       <td className="px-5 py-3 text-slate-800 whitespace-nowrap">
-                        {event.date ? format(new Date(event.date), 'PP') : '—'}
-                        {event.end_date ? ` – ${format(new Date(event.end_date), 'PP')}` : ''}
+                        {isEditing ? (
+                          <div className="flex flex-col gap-1">
+                            <Input
+                              type="date"
+                              value={editData.date || ''}
+                              onChange={(e) => setEditData((d) => ({ ...d, date: e.target.value }))}
+                              className="h-9"
+                            />
+                            <Input
+                              type="date"
+                              value={editData.end_date || ''}
+                              onChange={(e) => setEditData((d) => ({ ...d, end_date: e.target.value }))}
+                              className="h-9"
+                            />
+                          </div>
+                        ) : (
+                          <>
+                            {event.date ? format(new Date(event.date), 'PP') : '—'}
+                            {event.end_date ? ` – ${format(new Date(event.end_date), 'PP')}` : ''}
+                          </>
+                        )}
                       </td>
                       <td className="px-5 py-3 font-medium text-slate-900 whitespace-nowrap">
-                        {event.name || '—'}
+                        {isEditing ? (
+                          <Input
+                            value={editData.name ?? ''}
+                            onChange={(e) => setEditData((d) => ({ ...d, name: e.target.value }))}
+                            className="h-9"
+                          />
+                        ) : (
+                          event.name || '—'
+                        )}
                       </td>
                       <td className="px-5 py-3 text-slate-800 whitespace-nowrap">
-                        {event.location || '—'}
+                        {isEditing ? (
+                          <Input
+                            value={editData.location ?? ''}
+                            onChange={(e) => setEditData((d) => ({ ...d, location: e.target.value }))}
+                            className="h-9"
+                          />
+                        ) : (
+                          event.location || '—'
+                        )}
                       </td>
                       <td className="px-5 py-3 text-slate-600 whitespace-nowrap">
-                        {event.category || '—'}
+                        {isEditing ? (
+                          <Input
+                            value={editData.category ?? ''}
+                            onChange={(e) => setEditData((d) => ({ ...d, category: e.target.value }))}
+                            className="h-9"
+                          />
+                        ) : (
+                          event.category || '—'
+                        )}
                       </td>
                       <td className="px-5 py-3 text-slate-600 whitespace-nowrap">
-                        {event.tag || '—'}
+                        {isEditing ? (
+                          <Input
+                            value={editData.tag ?? ''}
+                            onChange={(e) => setEditData((d) => ({ ...d, tag: e.target.value }))}
+                            className="h-9"
+                          />
+                        ) : (
+                          event.tag || '—'
+                        )}
                       </td>
                       <td className="px-5 py-3 text-slate-800 whitespace-nowrap">
-                        {event.rating != null ? event.rating : '—'}
+                        {isEditing ? (
+                          <Input
+                            type="number"
+                            value={editData.rating ?? ''}
+                            onChange={(e) => setEditData((d) => ({ ...d, rating: e.target.value === '' ? undefined : Number(e.target.value) }))}
+                            className="h-9"
+                          />
+                        ) : (
+                          event.rating != null ? event.rating : '—'
+                        )}
                       </td>
                       <td className="px-5 py-3 text-slate-800">
-                        {event.notes || '—'}
+                        {isEditing ? (
+                          <Input
+                            value={editData.notes ?? ''}
+                            onChange={(e) => setEditData((d) => ({ ...d, notes: e.target.value }))}
+                          />
+                        ) : (
+                          event.notes || '—'
+                        )}
+                      </td>
+                      <td className="px-5 py-3 whitespace-nowrap">
+                        {isEditing ? (
+                          <div className="flex gap-2">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={cancelEdit}
+                              disabled={savingId === event.id}
+                            >
+                              Cancel
+                            </Button>
+                            <Button
+                              size="sm"
+                              onClick={saveEdit}
+                              disabled={savingId === event.id}
+                            >
+                              {savingId === event.id ? 'Saving...' : 'Save'}
+                            </Button>
+                          </div>
+                        ) : (
+                          <Button size="sm" variant="ghost" onClick={() => startEdit(event)}>
+                            Edit
+                          </Button>
+                        )}
                       </td>
                     </tr>
                   )
                 })}
-                {initialEvents.length === 0 && (
+                {events.length === 0 && (
                   <tr>
-                    <td colSpan={8} className="px-5 py-6 text-center text-muted-foreground">
+                    <td colSpan={9} className="px-5 py-6 text-center text-muted-foreground">
                       No events found for this view.
                     </td>
                   </tr>
